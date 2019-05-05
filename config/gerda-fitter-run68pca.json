@@ -1,0 +1,12 @@
+{
+    "run68pca" : {
+        "../data/gerda-data-run0068-pca-nocuts.root" : {
+            "gerda-pdfs" : "../data/gerda-pdfs/v2.0-RC",
+            "M1_enrBEGe" : {
+                "single_s2_8220 + single_s2_8408 + single_s2_8570 + single_s3_8220 + single_s3_8405 + single_s3_8570" : { "Tl208" : 1, "Bi212" : 0.3539 },
+                "single_s2_8220 + single_s2_8408 + single_s2_8570 + single_s3_8220 + single_s3_8405 + single_s3_8570" : { "Co60" : 1 },
+                "single_s2_8220 + single_s2_8408 + single_s2_8570 + single_s3_8220 + single_s3_8405 + single_s3_8570" : { "Na22" : 1 }
+            }
+        }
+    }
+}
