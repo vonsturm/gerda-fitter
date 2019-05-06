@@ -1,12 +1,26 @@
 {
-    "run68pca" : {
+    "id" : "run68pca",
+    "precision" : "kMedium",
+    "output-dir" : "../results",
+    "fit" : {
         "../data/gerda-data-run0068-pca-nocuts.root" : {
-            "gerda-pdfs" : "../data/gerda-pdfs/v2.0-RC",
-            "M1_enrBEGe" : {
-                "single_s2_8220 + single_s2_8408 + single_s2_8570 + single_s3_8220 + single_s3_8405 + single_s3_8570" : { "Tl208" : 1, "Bi212" : 0.3539 },
-                "single_s2_8220 + single_s2_8408 + single_s2_8570 + single_s3_8220 + single_s3_8405 + single_s3_8570" : { "Co60" : 1 },
-                "single_s2_8220 + single_s2_8408 + single_s2_8570 + single_s3_8220 + single_s3_8405 + single_s3_8570" : { "Na22" : 1 }
-            }
+            "M1_enrBEGe" : [
+                {
+                    "prefix" : "../data/gerda-pdfs/v2.0-RC/calib",
+                    "part": {
+                        "single_s2_8220" : 52183,
+                        "single_s2_8408" : 25337,
+                        "single_s2_8570" : 79868,
+                        "single_s3_8220" : 55438,
+                        "single_s3_8405" : 43433,
+                        "single_s3_8570" : 24130
+                    },
+                    "isotopes" : [
+                        { "Tl208" : 0.3539, "Bi212" : 1 },
+                        "Co60", "Na22"
+                    ]
+                }
+            ]
         }
     }
 }

@@ -10,6 +10,7 @@
 
 // STL
 #include <vector>
+#include <map>
 #include <string>
 
 // ROOT
@@ -17,6 +18,9 @@
 
 // BAT
 #include "BAT/BCModel.h"
+
+#include "json.hpp"
+using json = nlohmann::json;
 
 class GerdaFitter : public BCModel {
 
@@ -26,15 +30,16 @@ class GerdaFitter : public BCModel {
     GerdaFitter           ()                   = delete;
     GerdaFitter           (GerdaFitter const&) = delete;
     GerdaFitter& operator=(GerdaFitter const&) = delete;
-    // use default destructor
-    ~GerdaFitter          ()                   = default;
 
     // custom constructor
-    GerdaFitter(std::string name);
+    GerdaFitter(json metadata);
+    ~GerdaFitter();
 
     // methods from BCModel to be overloaded
     double LogLikelihood(const std::vector<double>& parameters);
 
-    std::vector<TH1*> data;
-    std::vector<TH1*> pred;
+    // map that associates data histogram with list of components
+    std::map<TH1*, std::vector<TH1*>> data;
 };
+
+#endif
