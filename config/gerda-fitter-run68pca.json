@@ -1,5 +1,6 @@
 {
     "id" : "run68pca",
+    "logging" : "debug",
     "precision" : "kMedium",
     "output-dir" : "../results",
     "fit" : {
@@ -15,10 +16,26 @@
                         "single_s3_8405" : 43433,
                         "single_s3_8570" : 24130
                     },
-                    "isotopes" : [
-                        { "Tl208" : 0.3539, "Bi212" : 1 },
-                        "Co60", "Na22"
-                    ]
+                    "components" : {
+                        "Th228" : {
+                            "isotope" : { "Tl208-run68pca" : 0.3539, "Bi212-run68pca" : 1 },
+                            "range" : [10, 1000],
+                            "long-name" : "^{228}Th",
+                            "units" : "cts"
+                        },
+                        "Co60" : {
+                            "isotope": "Co60-run68pca",
+                            "range" : [10, 1000],
+                            "long-name" : "^{60}Co",
+                            "units" : "cts"
+                        },
+                        "Na22" : {
+                            "isotope" : "Na22-run68pca",
+                            "range" : [10, 1000],
+                            "long-name" : "^{22}Na",
+                            "units" : "cts"
+                        }
+                    }
                 }
             ]
         }

@@ -88,31 +88,39 @@ int main(int argc, char** argv) {
      * main routine
      */
 
-    GerdaFitter model(config);
+    GerdaFitter* model;
+    try {
+        model = new GerdaFitter(config);
+    }
+    catch(std::exception& e) {
+        BCLog::OutError(e.what());
+        BCLog::OutError("caught exception while initializing model, aborting...");
+        return 1;
+    }
+
+    // set nicer style for drawing than the ROOT default
+    // BCAux::SetStyle();
+
+    // set precision (number of samples in Markov chain)
+    model->SetPrecision(config.value("precision", BCEngineMCMC::kMedium));
 
     // output
     auto outdir = config["output-dir"].get<std::string>();
     std::system(("mkdir -p " + outdir).c_str());
     auto prefix = outdir + "/gerda-fitter-" + config["id"].get<std::string>() + "-";
 
-    // set nicer style for drawing than the ROOT default
-    // BCAux::SetStyle();
-
     // open log file
     BCLog::SetLogLevelFile(BCLog::detail);
     BCLog::SetLogLevelScreen(config.value("logging", BCLog::summary));
     BCLog::OpenLog(prefix + "output.log");
 
-    // set precision (number of samples in Markov chain)
-    model.SetPrecision(config.value("precision", BCEngineMCMC::kMedium));
-
     BCLog::OutSummary("Saving results in " + outdir);
 
     // run MCMC and marginalize posterior w/r/t all parameters and all
     // combinations of two parameters
-    model.SetMarginalizationMethod(BCIntegrate::kMargMetropolis);
+    // model->SetMarginalizationMethod(BCIntegrate::kMargMetropolis);
     auto start = std::chrono::system_clock::now();
-    model.MarginalizeAll();
+    model->MarginalizeAll();
     auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-start);
     BCLog::OutSummary("Time spent: " + std::to_string(elapsed.count()) + "s");
 
@@ -130,6 +138,8 @@ int main(int argc, char** argv) {
     BCLog::OutSummary("Exiting");
     // close log file
     BCLog::CloseLog();
+
+    delete model;
 
     return 0;
 }

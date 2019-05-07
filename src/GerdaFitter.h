@@ -38,8 +38,10 @@ class GerdaFitter : public BCModel {
     // methods from BCModel to be overloaded
     double LogLikelihood(const std::vector<double>& parameters);
 
+    void DumpData();
+
     // map that associates data histogram with list of components
-    std::map<TH1*, std::vector<TH1*>> data;
+    std::map<TH1*, std::map<int, TH1*>> data;
 };
 
 #endif
