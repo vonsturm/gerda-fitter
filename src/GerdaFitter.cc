@@ -11,6 +11,7 @@
 #include "BAT/BCMath.h"
 
 // ROOT
+#include "TF1.h"
 #include "TFile.h"
 #include "TString.h"
 
@@ -23,6 +24,7 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
     BCLog::SetLogLevelFile(BCLog::debug);
     BCLog::OpenLog(prefix + "output.log");
     BCLog::OutSummary("Saving results in " + outdir);
+    BCLog::SetLogLevelScreen(config.value("logging", BCLog::summary));
 
     this->SetName(config["id"]);
 
@@ -50,7 +52,7 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
             _current_ds.data = th;
 
             // set fit range
-            _current_ds.brange = {1, th->GetNbinsX()};
+            _current_ds.brange = {1, _current_ds.data->GetNbinsX()};
             if (elh.value().contains("fit-range")) {
                 if (elh.value()["fit-range"].is_array()) {
                     if (!elh.value()["fit-range"][0].is_null()) {
@@ -64,11 +66,16 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
                 }
             }
 
+            // eventually get a global value for the gerda-pdfs path
+            auto gerda_pdfs_path = elh.value().value("gerda-pdfs", ".");
+
             BCLog::OutDebug("getting the requested pdfs");
             // loop over requested components
             for (auto& it : elh.value()["components"]) {
-                auto prefix = it.value("prefix", ".");
 
+                auto prefix = it.value("prefix", gerda_pdfs_path);
+
+                /* START INTERMEZZO */
                 // utility to sum over the requested parts (with weight) given isotope
                 auto sum_parts = [&](std::string i) {
                     std::string true_iso = i;
@@ -89,14 +96,10 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
                             auto filename = prefix + "/" + p.key() + "/" + true_iso + "/" + "pdf-"
                                 + volume + "-" + p.key() + "-" + i + ".root";
                             BCLog::OutDebug("opening file " + filename);
-                            // open pdf file
-                            TFile _tff(filename.c_str());
-                            if (!_tff.IsOpen()) throw std::runtime_error("invalid ROOT file: " + filename);
                             BCLog::OutDebug("summing object '" + elh.key() + " with weight "
                                     + std::to_string(p.value().get<double>()/sumw));
                             // get histogram
-                            auto thh = dynamic_cast<TH1*>(_tff.Get(elh.key().c_str()));
-                            if (!thh) throw std::runtime_error("could not find object '" + elh.key() + "' in file " + filename);
+                            auto thh = this->GetFitComponent(filename, elh.key(), _current_ds.data);
                             // add it with weight
                             if (!sum) {
                                 sum = thh;
@@ -111,53 +114,63 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
                         // get volume name
                         auto path_to_part = prefix + "/" + it["part"].get<std::string>();
                         if (path_to_part.back() == '/') path_to_part.pop_back();
+                        auto part = path_to_part.substr(path_to_part.find_last_of('/')+1);
                         path_to_part.erase(path_to_part.find_last_of('/'));
                         auto volume = path_to_part.substr(path_to_part.find_last_of('/')+1);
-                        auto filename = prefix + "/" + it["part"].get<std::string>() + "/" + i + "/" + "pdf-"
-                            + volume + "-" + it["part"].get<std::string>() + "-" + i + ".root";
+                        auto filename = prefix + "/" + it["part"].get<std::string>() + "/" + true_iso + "/" + "pdf-"
+                            + volume + "-" + part + "-" + i + ".root";
                         BCLog::OutDebug("getting object '" + elh.key() + "' in file " + filename);
-                        // open pdf file
-                        TFile _tff(filename.c_str());
-                        if (!_tff.IsOpen()) throw std::runtime_error("invalid ROOT file: " + filename);
                         // get histogram
-                        auto thh = dynamic_cast<TH1*>(_tff.Get(elh.key().c_str()));
-                        if (!thh) throw std::runtime_error("could not find object '" + elh.key() + "' in file " + filename);
-                        thh->SetDirectory(nullptr); // please do not delete it when the TFile goes out of scope
+                        auto thh = this->GetFitComponent(filename, elh.key(), _current_ds.data);
                         return thh;
                     }
                     else throw std::runtime_error("unexpected 'part' value found in [\"fit\"][\""
                             + el.key() + "\"][\"" + elh.key() + "\"]");
                 };
+                /* END INTERMEZZO */
 
                 // loop over requested isotopes on the relative part
                 for (auto& iso : it["components"].items()) {
                     BCLog::OutDebug("building pdf for entry " + iso.key());
 
-                    if (iso.value()["isotope"].is_string()) {
-                        auto comp = sum_parts(iso.value()["isotope"]);
-                        comp->SetName((iso.key() + "_" + std::string(comp->GetName())).c_str());
-                        _current_ds.comp.insert({comp_idx, comp});
+                    // it's a user defined file
+                    if (it.contains("root-file")) {
+                        auto obj_name = iso.value().value("hist-name", elh.key());
+                        auto thh = this->GetFitComponent(it["root-file"].get<std::string>(), obj_name, _current_ds.data);
+                        _current_ds.comp.insert({comp_idx, thh});
+
                     }
-                    else if (iso.value()["isotope"].is_object()) {
-                        double sumwi = 0;
-                        for (auto& i : iso.value()["isotope"].items()) sumwi += i.value().get<double>();
-
-                        TH1* comp = nullptr;
-                        for (auto& i : iso.value()["isotope"].items()) {
-                            BCLog::OutDebug("scaling pdf for " + i.key() + " by a factor "
-                                    + std::to_string(i.value().get<double>()/sumwi));
-                            if (!comp) {
-                                comp = sum_parts(i.key());
-                                comp->Scale(i.value().get<double>()/sumwi);
-                            }
-                            else comp->Add(sum_parts(i.key()), i.value().get<double>()/sumwi);
-
+                    else { // look into gerda-pdfs database
+                        if (iso.value()["isotope"].is_string()) {
+                            auto comp = sum_parts(iso.value()["isotope"]);
+                            comp->SetName((iso.key() + "_" + std::string(comp->GetName())).c_str());
+                            _current_ds.comp.insert({comp_idx, comp});
                         }
-                        comp->SetName((iso.key() + "_" + std::string(comp->GetName())).c_str());
-                        _current_ds.comp.insert({comp_idx, comp});
+                        else if (iso.value()["isotope"].is_object()) {
+                            double sumwi = 0;
+                            for (auto& i : iso.value()["isotope"].items()) sumwi += i.value().get<double>();
+
+                            TH1* comp = nullptr;
+                            for (auto& i : iso.value()["isotope"].items()) {
+                                BCLog::OutDebug("scaling pdf for " + i.key() + " by a factor "
+                                        + std::to_string(i.value().get<double>()/sumwi));
+                                if (!comp) {
+                                    comp = sum_parts(i.key());
+                                    comp->Scale(i.value().get<double>()/sumwi);
+                                }
+                                else comp->Add(sum_parts(i.key()), i.value().get<double>()/sumwi);
+
+                            }
+                            comp->SetName((iso.key() + "_" + std::string(comp->GetName())).c_str());
+                            _current_ds.comp.insert({comp_idx, comp});
+                        }
+                        else throw std::runtime_error("unexpected entry " + iso.value()["isotope"].dump() + "found in [\"fit\"][\""
+                                + el.key() + "\"][\"" + elh.key() + "\"][\"components\"][\"" + iso.key() + "\"][\"isotope\"]");
+
+                        if (!_current_ds.comp[comp_idx]) {
+                            throw std::runtime_error("invalid pointer found in component list at position " + std::to_string(comp_idx));
+                        }
                     }
-                    else throw std::runtime_error("unexpected entry " + iso.value()["isotope"].dump() + "found in [\"fit\"][\""
-                            + el.key() + "\"][\"" + elh.key() + "\"][\"components\"][\"" + iso.key() + "\"][\"isotope\"]");
 
                     // create a corresponding fit parameter
                     BCLog::OutDebug("adding model parameter '" + iso.key() + "' (\""
@@ -198,9 +211,7 @@ double GerdaFitter::LogLikelihood(const std::vector<double>& parameters) {
         for (int b = it.brange.first; b < it.brange.second; ++b) {
             // compute theoretical prediction for bin 'b'
             double pred = 0;
-            for (auto& h : it.comp) {
-                pred += parameters[h.first]*h.second->GetBinContent(b);
-            }
+            for (auto& h : it.comp) pred += parameters[h.first]*h.second->GetBinContent(b);
             logprob += BCMath::LogPoisson(it.data->GetBinContent(b), pred);
         }
     }
@@ -231,5 +242,38 @@ void GerdaFitter::SaveHistograms(std::string filename) {
             h.second->Write();
         }
         tf.cd();
+    }
+}
+
+TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, TH1* data) {
+    TFile _tf(filename.c_str());
+    if (!_tf.IsOpen()) throw std::runtime_error("invalid ROOT file: " + filename);
+    auto obj = _tf.Get(objectname.c_str());
+    if (!obj) throw std::runtime_error("could not find object '" + objectname + "' in file " + filename);
+    // please do not delete it when the TFile goes out of scope
+    if (obj->InheritsFrom(TH1::Class())) {
+        auto _th = dynamic_cast<TH1*>(obj);
+        if (_th->GetDimension() > 1) throw std::runtime_error("TH2/TH3 are not supported yet");
+        if (_th->GetNbinsX() != data->GetNbinsX() or
+            _th->GetDimension() != data->GetDimension() or
+            _th->GetXaxis()->GetXmin() != data->GetXaxis()->GetXmin() or
+            _th->GetXaxis()->GetXmax() != data->GetXaxis()->GetXmax()) {
+            throw std::runtime_error("histogram '" + objectname + "' in file " + filename
+                + "and corresponding data histogram do not have the same number of bins and/or same ranges");
+        }
+        _th->SetDirectory(nullptr);
+        return _th;
+    }
+    else if (obj->InheritsFrom(TF1::Class())) {
+        auto _th = new TH1D(obj->GetName(), obj->GetTitle(), data->GetNbinsX(),
+            data->GetXaxis()->GetXmin(), data->GetXaxis()->GetXmax());
+        for (int b = 1; b < _th->GetNbinsX(); ++b) {
+            _th->SetBinContent(b, dynamic_cast<TF1*>(obj)->Eval(_th->GetBinCenter(b)));
+        }
+        _th->SetDirectory(nullptr);
+        return _th;
+    }
+    else {
+        throw std::runtime_error("object '" + objectname + "' in file " + filename + " isn't of type TH1 or TF1");
     }
 }

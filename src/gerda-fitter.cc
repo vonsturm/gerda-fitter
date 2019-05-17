@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    BCLog::SetLogLevelScreen(config.value("logging", BCLog::debug));
+    BCLog::SetLogLevelScreen(config.value("logging", BCLog::summary));
     // set nicer style for drawing than the ROOT default
     // BCAux::SetStyle();
 

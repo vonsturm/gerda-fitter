@@ -41,6 +41,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(BCLog::LogLevel, {
     {BCLog::nothing, "nothing"},
 })
 
+union fit_comp {
+};
 struct dataset {
     TH1* data;
     std::pair<int,int> brange;
@@ -68,6 +70,10 @@ class GerdaFitter : public BCModel {
 
     std::vector<dataset> data;
     json config;
+
+    private:
+
+    TH1* GetFitComponent(std::string filename, std::string objectname, TH1* data);
 };
 
 #endif
