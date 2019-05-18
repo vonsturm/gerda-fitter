@@ -51,20 +51,9 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
             dataset _current_ds;
             _current_ds.data = th;
 
-            // set fit range
-            _current_ds.brange = {1, _current_ds.data->GetNbinsX()};
-            if (elh.value().contains("fit-range")) {
-                if (elh.value()["fit-range"].is_array()) {
-                    if (!elh.value()["fit-range"][0].is_null()) {
-                        _current_ds.brange.first = th->FindBin(elh.value()["fit-range"][0]);
-                        BCLog::OutDebug("Setting lower fit bin range to " + std::to_string(_current_ds.brange.first));
-                    }
-                    if (!elh.value()["fit-range"][1].is_null()) {
-                        _current_ds.brange.second = th->FindBin(elh.value()["fit-range"][1]);
-                        BCLog::OutDebug("Setting upper fit bin range to " + std::to_string(_current_ds.brange.second));
-                    }
-                }
-            }
+            // get rebin factor
+            auto rebin = elh.value().value("rebin-factor", 1);
+            BCLog::OutDetail("using rebin factor = " + std::to_string(rebin));
 
             // eventually get a global value for the gerda-pdfs path
             auto gerda_pdfs_path = elh.value().value("gerda-pdfs", ".");
@@ -172,6 +161,9 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
                         }
                     }
 
+                    // eventually rebin
+                    _current_ds.comp[comp_idx]->Rebin(rebin);
+
                     // create a corresponding fit parameter
                     BCLog::OutDebug("adding model parameter '" + iso.key() + "' (\""
                         + iso.value().value("long-name", "") + "\" [" + iso.value().value("units", "")
@@ -189,6 +181,25 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
                     comp_idx++;
                 }
             }
+
+            // eventually rebin data
+            _current_ds.data->Rebin(rebin);
+
+            // set fit range
+            _current_ds.brange = {1, _current_ds.data->GetNbinsX()};
+            if (elh.value().contains("fit-range")) {
+                if (elh.value()["fit-range"].is_array()) {
+                    if (!elh.value()["fit-range"][0].is_null()) {
+                        _current_ds.brange.first = _current_ds.data->FindBin(elh.value()["fit-range"][0]);
+                        BCLog::OutDebug("Setting lower fit bin range to " + std::to_string(_current_ds.brange.first));
+                    }
+                    if (!elh.value()["fit-range"][1].is_null()) {
+                        _current_ds.brange.second = _current_ds.data->FindBin(elh.value()["fit-range"][1]);
+                        BCLog::OutDebug("Setting upper fit bin range to " + std::to_string(_current_ds.brange.second));
+                    }
+                }
+            }
+
             data.push_back(_current_ds);
 
             BCLog::OutDebug("data and pdf components got so far:");
@@ -259,7 +270,7 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
             _th->GetXaxis()->GetXmin() != data->GetXaxis()->GetXmin() or
             _th->GetXaxis()->GetXmax() != data->GetXaxis()->GetXmax()) {
             throw std::runtime_error("histogram '" + objectname + "' in file " + filename
-                + "and corresponding data histogram do not have the same number of bins and/or same ranges");
+                + " and corresponding data histogram do not have the same number of bins and/or same ranges");
         }
         _th->SetDirectory(nullptr);
         return _th;

@@ -41,8 +41,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(BCLog::LogLevel, {
     {BCLog::nothing, "nothing"},
 })
 
-union fit_comp {
-};
 struct dataset {
     TH1* data;
     std::pair<int,int> brange;
