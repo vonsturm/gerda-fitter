@@ -1,7 +1,7 @@
 {
     "id" : "phIIAfterLAr",
     "logging" : "summary",
-    "precision" : "kMedium",
+    "precision" : "kQuick",
     "output-dir" : "../results",
     "fit" : {
         "../data/gerda-data-bkgmodel-phaseII-v04.00-larveto.root" : {
@@ -14,13 +14,13 @@
                         "components" : {
                             "alpha-offset" : {
                                 "hist-name" : "flat",
-                                "parameter-range" : [50, 100],
+                                "parameter-range" : [0, 1E-1],
                                 "long-name" : "#alpha-model - offset",
                                 "units" : "cts"
                             },
                             "alpha-slope" : {
                                 "hist-name" : "ramp",
-                                "parameter-range" : [0, 1],
+                                "parameter-range" : [0, 1E-4],
                                 "long-name" : "#alpha-model - slope",
                                 "units" : "cts"
                             }
@@ -31,19 +31,19 @@
                         "components" : {
                             "Th228-cables" : {
                                 "isotope" : { "Tl208-larveto" : 0.3539, "Bi212-larveto" : 1 },
-                                "parameter-range" : [0, 100],
+                                "parameter-range" : [0, 1E6],
                                 "long-name" : "^{228}Th - cables",
                                 "units" : "cts"
                             },
                             "Co60-cables" : {
                                 "isotope": "Co60-larveto",
-                                "parameter-range" : [0, 100],
+                                "parameter-range" : [0, 1E5],
                                 "long-name" : "^{60}Co - cables",
                                 "units" : "cts"
                             },
                             "U238-cables" : {
                                 "isotope" : { "Bi214-larveto" : 1, "Pb214-larveto" : 1 },
-                                "parameter-range" : [0, 100],
+                                "parameter-range" : [0, 1E5],
                                 "long-name" : "^{238}U - cables",
                                 "units" : "cts"
                             }
@@ -54,7 +54,7 @@
                         "components" : {
                             "2nbb" : {
                                 "isotope" : "2nbb-larveto",
-                                "parameter-range" : [0, 1],
+                                "parameter-range" : [8E4, 1E5],
                                 "long-name" : "2#nu#beta#beta",
                                 "units" : "cts"
                             }
@@ -65,7 +65,7 @@
                         "components" : {
                             "Ac228-holders" : {
                                 "isotope" : "Ac228-larveto",
-                                "parameter-range" : [1, 100],
+                                "parameter-range" : [0, 1E4],
                                 "long-name" : "^{228}Ac - holders",
                                 "units" : "cts"
                             }
@@ -76,7 +76,7 @@
                         "components" : {
                             "K40-close" : {
                                 "isotope" : "K40-larveto",
-                                "parameter-range" : [1, 100],
+                                "parameter-range" : [1E5, 3E6],
                                 "long-name" : "^{40}K - close",
                                 "units" : "cts"
                             }
@@ -87,7 +87,7 @@
                         "components" : {
                             "K40-far" : {
                                 "isotope" : "K40-larveto",
-                                "parameter-range" : [1, 100],
+                                "parameter-range" : [1E6, 5E7],
                                 "long-name" : "^{40}K - far",
                                 "units" : "cts"
                             }
@@ -96,9 +96,9 @@
                     {
                         "part": "lar/sur_array",
                         "components" : {
-                            "K42-inLAr" : {
+                            "K42-far" : {
                                 "isotope" : "K42-larveto",
-                                "parameter-range" : [1, 100],
+                                "parameter-range" : [1E8, 3E8],
                                 "long-name" : "^{42}K - hom. in LAr",
                                 "units" : "cts"
                             }
@@ -107,9 +107,9 @@
                     {
                         "part": "gedet/nplus_bege",
                         "components" : {
-                            "K42-nplus" : {
+                            "K42-close" : {
                                 "isotope" : "K42-larveto",
-                                "parameter-range" : [1, 100],
+                                "parameter-range" : [1E4, 3E4],
                                 "long-name" : "^{42}K - n^+",
                                 "units" : "cts"
                             }

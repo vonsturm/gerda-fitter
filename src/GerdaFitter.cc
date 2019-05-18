@@ -14,6 +14,7 @@
 #include "TF1.h"
 #include "TFile.h"
 #include "TString.h"
+#include "TParameter.h"
 
 GerdaFitter::GerdaFitter(json config) : config(config) {
     // open log file
@@ -46,6 +47,7 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
                     el.key().find_last_of('.') - el.key().find_last_of('/') - 1);
             basename += "_" + std::string(th->GetName());
             basename.ReplaceAll('-', '_');
+            basename.ReplaceAll('.', '_');
             th->SetName(basename);
 
             dataset _current_ds;
@@ -247,11 +249,18 @@ void GerdaFitter::SaveHistograms(std::string filename) {
     for (auto& it : data) {
         tf.mkdir(it.data->GetName());
         tf.cd(it.data->GetName());
-        it.data->Write();
+        it.data->Write("fitted_data");
+
+        TH1* sum = nullptr;
         for (auto& h : it.comp) {
             h.second->Scale(this->GetBestFitParameters()[h.first]);
+            // compute total model
+            if (!sum) sum = dynamic_cast<TH1*>(h.second->Clone());
+            else      sum->Add(h.second);
             h.second->Write();
         }
+        sum->SetTitle("total_model");
+        sum->Write("total_model");
         tf.cd();
     }
 }
@@ -272,6 +281,12 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
             throw std::runtime_error("histogram '" + objectname + "' in file " + filename
                 + " and corresponding data histogram do not have the same number of bins and/or same ranges");
         }
+        TParameter<Long64_t>* _nprim;
+        if (objectname.substr(0, 3) == "M1_") _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesEdep"));
+        else if (objectname.substr(0, 3) == "M2_") _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesCoin"));
+        long long int nprim = (_nprim) ? _nprim->GetVal() : 1;
+        _th->Scale(1./nprim);
+
         _th->SetDirectory(nullptr);
         return _th;
     }
