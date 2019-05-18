@@ -75,8 +75,6 @@ int main(int argc, char** argv) {
     }
 
     BCLog::SetLogLevelScreen(config.value("logging", BCLog::summary));
-    // set nicer style for drawing than the ROOT default
-    // BCAux::SetStyle();
 
     // set precision (number of samples in Markov chain)
     model->SetPrecision(config.value("precision", BCEngineMCMC::kMedium));
@@ -88,21 +86,24 @@ int main(int argc, char** argv) {
     model->MarginalizeAll();
     auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-start);
     BCLog::OutSummary("Time spent: " + std::to_string(elapsed.count()) + "s");
-    model->PrintShortFitSummary();
 
-    // run mode finding, by default using Minuit, working shitty
-    //model.FindMode(model.GetBestFitParameters());
-
-    // double pvalue = GetPValue(model, level, false);
+    // run mode finding, by default using Minuit
+    model->FindMode(BCIntegrate::kOptMinuit, model->GetBestFitParameters());
+    model->PrintExtendedFitSummary();
 
     // OUTPUT
     auto outdir = config["output-dir"].get<std::string>();
     std::system(("mkdir -p " + outdir).c_str());
     auto prefix = outdir + "/gerda-fitter-" + config["id"].get<std::string>() + "-";
 
-    // print results of the analysis into a text file
-    // model->PrintResults((outdir + "Fit2nbbLV_results.txt"));
-    // draw all marginalized distributions into a PDF file
+    // draw parameter plot
+    model->PrintParameterPlot(prefix + "parameters.pdf");
+    model->PrintParameterLatex(prefix + "parameters.tex");
+    model->PrintCorrelationPlot(prefix + "par-correlation.pdf");
+
+    // draw/save all marginalized distributions
+    model->WriteMarginalizedDistributions(prefix + "marginalized.root", "recreate");
+    model->SetKnowledgeUpdateDrawingStyle(BCAux::kKnowledgeUpdateDetailedPosterior);
     model->PrintKnowledgeUpdatePlots(prefix + "know-update.pdf");
     model->SaveHistograms(prefix + "histograms.root");
 

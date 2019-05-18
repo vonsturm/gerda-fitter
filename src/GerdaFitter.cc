@@ -9,6 +9,7 @@
 
 // BAT
 #include "BAT/BCMath.h"
+#include "BAT/BCAux.h"
 
 // ROOT
 #include "TF1.h"
@@ -42,13 +43,11 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
             auto th = dynamic_cast<TH1*>(_tf.Get(elh.key().c_str()));
             if (!th) throw std::runtime_error("could not find object '" + elh.key() + "' in file " + el.key());
             th->SetDirectory(nullptr);
-            TString basename = el.key().substr(
+            auto basename = el.key().substr(
                     el.key().find_last_of('/')+1,
                     el.key().find_last_of('.') - el.key().find_last_of('/') - 1);
             basename += "_" + std::string(th->GetName());
-            basename.ReplaceAll('-', '_');
-            basename.ReplaceAll('.', '_');
-            th->SetName(basename);
+            th->SetName(BCAux::SafeName(basename).c_str());
 
             dataset _current_ds;
             _current_ds.data = th;
@@ -281,9 +280,13 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
             throw std::runtime_error("histogram '" + objectname + "' in file " + filename
                 + " and corresponding data histogram do not have the same number of bins and/or same ranges");
         }
-        TParameter<Long64_t>* _nprim;
-        if (objectname.substr(0, 3) == "M1_") _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesEdep"));
-        else if (objectname.substr(0, 3) == "M2_") _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesCoin"));
+        TParameter<Long64_t>* _nprim = nullptr;
+        if (objectname.substr(0, 3) == "M1_") {
+            _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesEdep"));
+        }
+        else if (objectname.substr(0, 3) == "M2_") {
+            _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesCoin"));
+        }
         long long int nprim = (_nprim) ? _nprim->GetVal() : 1;
         _th->Scale(1./nprim);
 
@@ -302,4 +305,26 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
     else {
         throw std::runtime_error("object '" + objectname + "' in file " + filename + " isn't of type TH1 or TF1");
     }
+}
+
+void GerdaFitter::PrintExtendedFitSummary()
+{
+    BCLog::OutSummary("---------------------------------------------------");
+    BCLog::OutSummary(Form("Fit summary for model \'%s\':", GetName().data()));
+    BCLog::OutSummary(Form("  Number of parameters:  Npar = %i", GetNParameters()));
+    BCLog::OutSummary("  Best fit parameters (global):");
+
+    auto best = this->GetBestFitParameters();
+    for (size_t i = 0; i < best.size(); ++i) {
+        std::string line = Form("    %-*s : %.*g ± %.*g",
+                this->GetMaximumParameterNameLength(best.size() > this->GetNParameters()),
+                this->GetVariable(i).GetName().data(),
+                2, best[i],
+                2, this->GetBestFitParameterErrors()[i]
+        );
+        if (this->GetParameter(i).Fixed()) line += " (fixed)";
+        BCLog::OutSummary(line);
+    }
+
+    BCLog::OutSummary("---------------------------------------------------");
 }

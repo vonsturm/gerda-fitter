@@ -63,7 +63,7 @@ class GerdaFitter : public BCModel {
     // methods from BCModel to be overloaded
     double LogLikelihood(const std::vector<double>& parameters);
 
-    void DumpData();
+    void PrintExtendedFitSummary();
     void SaveHistograms(std::string filename);
 
     std::vector<dataset> data;
@@ -71,6 +71,7 @@ class GerdaFitter : public BCModel {
 
     private:
 
+    void DumpData();
     TH1* GetFitComponent(std::string filename, std::string objectname, TH1* data);
 };
 
