@@ -79,8 +79,7 @@ int main(int argc, char** argv) {
     // set precision (number of samples in Markov chain)
     model->SetPrecision(config.value("precision", BCEngineMCMC::kMedium));
 
-    // run MCMC and marginalize posterior w/r/t all parameters and all
-    // combinations of two parameters
+    // run MCMC and marginalize posterior w/r/t all parameters
     // model->SetMarginalizationMethod(BCIntegrate::kMargMetropolis);
     auto start = std::chrono::system_clock::now();
     model->MarginalizeAll();
@@ -90,6 +89,10 @@ int main(int argc, char** argv) {
     // run mode finding, by default using Minuit
     model->FindMode(BCIntegrate::kOptMinuit, model->GetBestFitParameters());
     model->PrintExtendedFitSummary();
+
+    // integration
+    model->SetIntegrationProperties(config["integration"]);
+    model->Integrate();
 
     // OUTPUT
     auto outdir = config["output-dir"].get<std::string>();

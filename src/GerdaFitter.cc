@@ -230,40 +230,6 @@ double GerdaFitter::LogLikelihood(const std::vector<double>& parameters) {
     return logprob;
 }
 
-void GerdaFitter::DumpData() {
-    for (auto& it : data) {
-        BCLog::OutDebug(it.data->GetName());
-        size_t i = 0;
-        for (auto& comp : it.comp) {
-            auto msg = (i == it.comp.size()-1 ? " └─ [" : " ├─ [")
-                + std::to_string(comp.first) + "] " + std::string(comp.second->GetName());
-            BCLog::OutDebug(msg);
-            i++;
-        }
-    }
-}
-
-void GerdaFitter::SaveHistograms(std::string filename) {
-    TFile tf(filename.c_str(), "recreate");
-    for (auto& it : data) {
-        tf.mkdir(it.data->GetName());
-        tf.cd(it.data->GetName());
-        it.data->Write("fitted_data");
-
-        TH1* sum = nullptr;
-        for (auto& h : it.comp) {
-            h.second->Scale(this->GetBestFitParameters()[h.first]);
-            // compute total model
-            if (!sum) sum = dynamic_cast<TH1*>(h.second->Clone());
-            else      sum->Add(h.second);
-            h.second->Write();
-        }
-        sum->SetTitle("total_model");
-        sum->Write("total_model");
-        tf.cd();
-    }
-}
-
 TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, TH1* data) {
     TFile _tf(filename.c_str());
     if (!_tf.IsOpen()) throw std::runtime_error("invalid ROOT file: " + filename);
@@ -307,16 +273,67 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
     }
 }
 
-void GerdaFitter::PrintExtendedFitSummary()
-{
+void GerdaFitter::SetIntegrationProperties(json j) {
+    this->SetIntegrationMethod(j.value("method", BCIntegrate::BCIntegrationMethod::kIntDefault));
+    this->SetCubaIntegrationMethod(j.value("cuba-method", BCIntegrate::BCCubaMethod::kCubaDefault));
+
+    if (j["integrator-settings"]) {
+        auto& jj = j["integrator-settings"];
+        if (this->GetIntegrationMethod != BCIntegrate::BCIntegrationMethod::kIntCuba) {
+            if (jj[this->GetIntegrationMethod]) {
+                this->SetNIterationsMin(jj[this->GetIntegrationMethod].value("niter-min", ));
+            }
+        }
+    }
+}
+
+void GerdaFitter::SaveHistograms(std::string filename) {
+    TFile tf(filename.c_str(), "recreate");
+    for (auto& it : data) {
+        tf.mkdir(it.data->GetName());
+        tf.cd(it.data->GetName());
+        it.data->Write("fitted_data");
+
+        TH1* sum = nullptr;
+        for (auto& h : it.comp) {
+            h.second->Scale(this->GetBestFitParameters()[h.first]);
+            // compute total model
+            if (!sum) sum = dynamic_cast<TH1*>(h.second->Clone());
+            else      sum->Add(h.second);
+            h.second->Write();
+        }
+        sum->SetTitle("total_model");
+        sum->Write("total_model");
+        tf.cd();
+    }
+}
+
+void GerdaFitter::DumpData() {
+    for (auto& it : data) {
+        BCLog::OutDebug(it.data->GetName());
+        size_t i = 0;
+        for (auto& comp : it.comp) {
+            auto msg = (i == it.comp.size()-1 ? " └─ [" : " ├─ [")
+                + std::to_string(comp.first) + "] " + std::string(comp.second->GetName());
+            BCLog::OutDebug(msg);
+            i++;
+        }
+    }
+}
+
+void GerdaFitter::PrintExtendedFitSummary() {
+    // ┌┬┐
+    // ├┼┤
+    // └┴┘
     BCLog::OutSummary("---------------------------------------------------");
     BCLog::OutSummary(Form("Fit summary for model \'%s\':", GetName().data()));
     BCLog::OutSummary(Form("  Number of parameters:  Npar = %i", GetNParameters()));
-    BCLog::OutSummary("  Best fit parameters (global):");
+    BCLog::OutSummary("  Best fit parameters (global mode):");
 
     auto best = this->GetBestFitParameters();
     for (size_t i = 0; i < best.size(); ++i) {
-        std::string line = Form("    %-*s : %.*g ± %.*g",
+        std::string line = Form("    [%2i] %-*s : %.*g ± %.*g",
+                int(i),
                 this->GetMaximumParameterNameLength(best.size() > this->GetNParameters()),
                 this->GetVariable(i).GetName().data(),
                 2, best[i],

@@ -1,32 +1,44 @@
 {
     "id" : "phIIAfterLAr",
     "logging" : "summary",
-    "precision" : "kQuick",
+    "precision" : "kMedium",
     "output-dir" : "../results",
+    "integration" : {
+        "method" : "kIntCuba",
+        "cuba-method" : "kCubaDivonne",
+        "integrator-settings" : {
+            "kIntMonteCarlo" : {
+                "niter-max" : 1000000,
+                "niter-min" : 0
+            },
+            "kIntCuba" : {
+                "kCubaVegas" : {
+                    "niter-max" : 1000000,
+                    "niter-min" : 0,
+                    "nstart" : 100000,
+                    "flags" : 0
+                },
+                "kCubaSuave" : {
+                    "niter-max" : 1000000,
+                    "niter-min" : 0,
+                    "neval" : 1000,
+                    "flags" : 0
+                },
+                "kCubaDivonne" : {
+                    "niter-max" : 1000000,
+                    "niter-min" : 0,
+                    "flags" : 0
+                }
+            }
+        }
+    },
     "fit" : {
         "../data/gerda-data-bkgmodel-phaseII-v04.00-larveto.root" : {
             "M1_enrBEGe" : {
                 "gerda-pdfs" : "../data/gerda-pdfs/v2.0-RC",
-                "fit-range" : [550, 2000],
+                "fit-range" : [560, 2000],
                 "rebin-factor" : 5,
                 "components" : [
-                    {
-                        "root-file" : "../data/gerda-pdfs/v2.0-RC/alphas/analytic/pdf-functions.root",
-                        "components" : {
-                            "alpha-offset" : {
-                                "hist-name" : "flat",
-                                "parameter-range" : [0, 1E-1],
-                                "long-name" : "#alpha-model - offset",
-                                "units" : "cts"
-                            },
-                            "alpha-slope" : {
-                                "hist-name" : "ramp",
-                                "parameter-range" : [0, 1E-4],
-                                "long-name" : "#alpha-model - slope",
-                                "units" : "cts"
-                            }
-                        }
-                    },
                     {
                         "part": "cables/cables_all",
                         "components" : {

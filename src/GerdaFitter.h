@@ -22,7 +22,6 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
-// map BCEngineMCMC::Precision values to JSON as strings
 NLOHMANN_JSON_SERIALIZE_ENUM(BCEngineMCMC::Precision, {
     {BCEngineMCMC::kQuick,    "kQuick"},
     {BCEngineMCMC::kLow,      "kLow"},
@@ -31,7 +30,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(BCEngineMCMC::Precision, {
     {BCEngineMCMC::kVeryHigh, "kVeryHigh"},
 })
 
-// map BCLog::LogLevel values to JSON as strings
 NLOHMANN_JSON_SERIALIZE_ENUM(BCLog::LogLevel, {
     {BCLog::debug,   "debug"},
     {BCLog::detail,  "detail"},
@@ -39,6 +37,22 @@ NLOHMANN_JSON_SERIALIZE_ENUM(BCLog::LogLevel, {
     {BCLog::warning, "warning"},
     {BCLog::error,   "error"},
     {BCLog::nothing, "nothing"},
+})
+
+NLOHMANN_JSON_SERIALIZE_ENUM(BCIntegrate::BCIntegrationMethod, {
+    {BCEngineMCMC::kIntMonteCarlo, "kIntMonteCarlo"},
+    {BCEngineMCMC::kIntGrid,       "kIntGrid"},
+    {BCEngineMCMC::kIntLaplace,    "kIntLaplace"},
+    {BCEngineMCMC::kIntCuba,       "kIntCuba"},
+    {BCEngineMCMC::kIntDefault,    "kIntDefault"},
+})
+
+NLOHMANN_JSON_SERIALIZE_ENUM(BCIntegrate::BCCubaMethod, {
+    {BCEngineMCMC::kCubaDivonne, "kCubaDivonne"},
+    {BCEngineMCMC::kCubaVegas,   "kCubaVegas"},
+    {BCEngineMCMC::kCubaSuave,   "kCubaSuave"},
+    {BCEngineMCMC::kCubaCuhre,   "kCubaCuhre"},
+    {BCEngineMCMC::kCubaDefault, "kCubaDefault"},
 })
 
 struct dataset {
@@ -63,6 +77,7 @@ class GerdaFitter : public BCModel {
     // methods from BCModel to be overloaded
     double LogLikelihood(const std::vector<double>& parameters);
 
+    void SetIntegrationProperties(json config);
     void PrintExtendedFitSummary();
     void SaveHistograms(std::string filename);
 
