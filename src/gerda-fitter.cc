@@ -80,19 +80,43 @@ int main(int argc, char** argv) {
     model->SetPrecision(config.value("precision", BCEngineMCMC::kMedium));
 
     // run MCMC and marginalize posterior w/r/t all parameters
-    // model->SetMarginalizationMethod(BCIntegrate::kMargMetropolis);
+    // An estimation of the global mode is available but without uncertainties
     auto start = std::chrono::system_clock::now();
     model->MarginalizeAll();
     auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-start);
     BCLog::OutSummary("Time spent: " + std::to_string(elapsed.count()) + "s");
+    model->PrintShortMarginalizationSummary();
+    BCLog::OutSummary("");
 
     // run mode finding, by default using Minuit
-    model->FindMode(BCIntegrate::kOptMinuit, model->GetBestFitParameters());
-    model->PrintExtendedFitSummary();
+    auto opt_method = BCIntegrate::kOptMinuit;
+    if (config["global-mode-search"].is_object()) {
+        opt_method = config["global-mode-search"].value("method", BCIntegrate::kOptMinuit);
+    }
+    model->FindMode(opt_method, model->GetBestFitParameters());
+    model->PrintOptimizationSummary();
+    BCLog::OutSummary("");
 
     // integration
-    model->SetIntegrationProperties(config["integration"]);
-    model->Integrate();
+    if (config["integration"].is_object()) {
+        if (config["integration"].value("enabled", false)) {
+            model->SetIntegrationProperties(config["integration"]);
+            model->Integrate();
+            auto logpost = model->LogProbability(model->GetBestFitParameters());
+            BCLog::OutSummary("Posterior at global mode: " + std::to_string(logpost));
+        }
+    }
+
+    // fast p-value computation
+    if (config["p-value"].is_object()) {
+        if (config["p-value"].value("enabled", false)) {
+            start = std::chrono::system_clock::now();
+            auto pvalue = model->GetFastPValue(model->GetBestFitParameters(), config["p-value"].value("iterations", 1E07));
+            elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now()-start);
+            BCLog::OutSummary("p-value = " + std::to_string(pvalue));
+            BCLog::OutSummary("Time spent: " + std::to_string(elapsed.count()) + "s");
+        }
+    }
 
     // OUTPUT
     auto outdir = config["output-dir"].get<std::string>();

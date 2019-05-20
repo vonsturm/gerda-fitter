@@ -40,19 +40,27 @@ NLOHMANN_JSON_SERIALIZE_ENUM(BCLog::LogLevel, {
 })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(BCIntegrate::BCIntegrationMethod, {
-    {BCEngineMCMC::kIntMonteCarlo, "kIntMonteCarlo"},
-    {BCEngineMCMC::kIntGrid,       "kIntGrid"},
-    {BCEngineMCMC::kIntLaplace,    "kIntLaplace"},
-    {BCEngineMCMC::kIntCuba,       "kIntCuba"},
-    {BCEngineMCMC::kIntDefault,    "kIntDefault"},
+    {BCIntegrate::kIntMonteCarlo, "kIntMonteCarlo"},
+    {BCIntegrate::kIntGrid,       "kIntGrid"},
+    {BCIntegrate::kIntLaplace,    "kIntLaplace"},
+    {BCIntegrate::kIntCuba,       "kIntCuba"},
+    {BCIntegrate::kIntDefault,    "kIntDefault"},
 })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(BCIntegrate::BCCubaMethod, {
-    {BCEngineMCMC::kCubaDivonne, "kCubaDivonne"},
-    {BCEngineMCMC::kCubaVegas,   "kCubaVegas"},
-    {BCEngineMCMC::kCubaSuave,   "kCubaSuave"},
-    {BCEngineMCMC::kCubaCuhre,   "kCubaCuhre"},
-    {BCEngineMCMC::kCubaDefault, "kCubaDefault"},
+    {BCIntegrate::kCubaDivonne, "kCubaDivonne"},
+    {BCIntegrate::kCubaVegas,   "kCubaVegas"},
+    {BCIntegrate::kCubaSuave,   "kCubaSuave"},
+    {BCIntegrate::kCubaCuhre,   "kCubaCuhre"},
+    {BCIntegrate::kCubaDefault, "kCubaDefault"},
+})
+
+NLOHMANN_JSON_SERIALIZE_ENUM(BCIntegrate::BCOptimizationMethod, {
+    {BCIntegrate::kOptEmpty,      "kOptEmpty"},
+    {BCIntegrate::kOptSimAnn,     "kOptSimAnn"},
+    {BCIntegrate::kOptMetropolis, "kOptMetropolis"},
+    {BCIntegrate::kOptMinuit,     "kOptMinuit"},
+    {BCIntegrate::kOptDefault,    "kOptDefault"},
 })
 
 struct dataset {
@@ -78,8 +86,10 @@ class GerdaFitter : public BCModel {
     double LogLikelihood(const std::vector<double>& parameters);
 
     void SetIntegrationProperties(json config);
-    void PrintExtendedFitSummary();
+    void PrintOptimizationSummary();
+    void PrintShortMarginalizationSummary();
     void SaveHistograms(std::string filename);
+    double GetFastPValue(const std::vector<double>& parameters, long niter);
 
     std::vector<dataset> data;
     json config;

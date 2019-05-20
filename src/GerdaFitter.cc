@@ -16,6 +16,7 @@
 #include "TFile.h"
 #include "TString.h"
 #include "TParameter.h"
+#include "TRandom3.h"
 
 GerdaFitter::GerdaFitter(json config) : config(config) {
     // open log file
@@ -274,14 +275,95 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
 }
 
 void GerdaFitter::SetIntegrationProperties(json j) {
+    if (j.is_null()) return;
+
     this->SetIntegrationMethod(j.value("method", BCIntegrate::BCIntegrationMethod::kIntDefault));
     this->SetCubaIntegrationMethod(j.value("cuba-method", BCIntegrate::BCCubaMethod::kCubaDefault));
 
-    if (j["integrator-settings"]) {
+    auto method = j.value("method", "kIntDefault");
+    BCLog::OutDebug("Integration method set: " + method);
+    auto cubamethod = j.value("cuba-method", "kCubaDefault");
+    BCLog::OutDebug("Cuba integration method set: " + cubamethod);
+
+    if (j["integrator-settings"].is_object()) {
         auto& jj = j["integrator-settings"];
-        if (this->GetIntegrationMethod != BCIntegrate::BCIntegrationMethod::kIntCuba) {
-            if (jj[this->GetIntegrationMethod]) {
-                this->SetNIterationsMin(jj[this->GetIntegrationMethod].value("niter-min", ));
+        if (jj[method].is_object()) {
+            if (this->GetIntegrationMethod() != BCIntegrate::BCIntegrationMethod::kIntCuba) {
+                if (jj[method]["niter-min"].is_number()) {
+                    this->SetNIterationsMin(jj[method]["niter-min"].get<long long>());
+                }
+                if (jj[method]["niter-max"].is_number()) {
+                    this->SetNIterationsMax(jj[method]["niter-max"].get<long long>());
+                }
+                if (jj[method]["rel-precision"].is_number()) {
+                    this->SetRelativePrecision(jj[method]["rel-precision"].get<double>());
+                }
+                if (jj[method]["abs-precision"].is_number()) {
+                    this->SetAbsolutePrecision(jj[method]["abs-precision"].get<double>());
+                }
+            }
+            else {
+                if (jj[method][cubamethod].is_object()) {
+                    if (jj[method][cubamethod]["niter-min"].is_number()) {
+                        this->SetNIterationsMin(jj[method][cubamethod]["niter-min"].get<long long>());
+                    }
+                    if (jj[method][cubamethod]["niter-max"].is_number()) {
+                        this->SetNIterationsMax(jj[method][cubamethod]["niter-max"].get<long long>());
+                    }
+                    if (jj[method][cubamethod]["rel-precision"].is_number()) {
+                        this->SetRelativePrecision(jj[method][cubamethod]["rel-precision"].get<double>());
+                    }
+                    if (jj[method][cubamethod]["abs-precision"].is_number()) {
+                        this->SetAbsolutePrecision(jj[method][cubamethod]["abs-precision"].get<double>());
+                    }
+                }
+                auto& jjj = jj[method][cubamethod];
+
+                auto set_base_props = [&jjj](BCCubaOptions::General& m) {
+                    if (jjj["ncomp"].is_number()) m.ncomp = jjj["ncomp"].get<int>();
+                    if (jjj["flags"].is_number()) m.flags = jjj["flags"].get<int>();
+                };
+
+                switch (this->GetCubaIntegrationMethod()) {
+
+                    case BCIntegrate::BCCubaMethod::kCubaVegas : {
+                        auto o = this->GetCubaVegasOptions();
+                        set_base_props(o);
+                        if (jjj["nstart"]   .is_number()) o.nstart    = jjj["nstart"]   .get<int>();
+                        if (jjj["nincrease"].is_number()) o.nincrease = jjj["nincrease"].get<int>();
+                        if (jjj["nbatch"]   .is_number()) o.nbatch    = jjj["nbatch"]   .get<int>();
+                        if (jjj["gridno"]   .is_number()) o.gridno    = jjj["gridno"]   .get<int>();
+                        this->SetCubaOptions(o);
+                    }
+                    case BCIntegrate::BCCubaMethod::kCubaSuave : {
+                        auto o = this->GetCubaSuaveOptions();
+                        set_base_props(o);
+                        if (jjj["nmin"]    .is_number()) o.nmin     = jjj["nmin"]    .get<int>();
+                        if (jjj["nnew"]    .is_number()) o.nnew     = jjj["nnev"]    .get<int>();
+                        if (jjj["flatness"].is_number()) o.flatness = jjj["flatness"].get<double>();
+                        this->SetCubaOptions(o);
+                    }
+                    case BCIntegrate::BCCubaMethod::kCubaDivonne : {
+                        auto o = this->GetCubaDivonneOptions();
+                        set_base_props(o);
+                        if (jjj["key1"]        .is_number()) o.key1         = jjj["key3"]        .get<int>();
+                        if (jjj["key2"]        .is_number()) o.key2         = jjj["key2"]        .get<int>();
+                        if (jjj["key3"]        .is_number()) o.key3         = jjj["key1"]        .get<int>();
+                        if (jjj["maxpass"]     .is_number()) o.maxpass      = jjj["maxpass"]     .get<int>();
+                        if (jjj["border"]      .is_number()) o.border       = jjj["border"]      .get<double>();
+                        if (jjj["maxchisq"]    .is_number()) o.maxchisq     = jjj["maxchisq"]    .get<double>();
+                        if (jjj["mindeviation"].is_number()) o.mindeviation = jjj["mindeviation"].get<double>();
+                        this->SetCubaOptions(o);
+                    }
+                    case BCIntegrate::BCCubaMethod::kCubaCuhre : {
+                        auto o = this->GetCubaCuhreOptions();
+                        set_base_props(o);
+                        if (jjj["key"]     .is_number()) o.key      = jjj["key"]     .get<int>();
+                        this->SetCubaOptions(o);
+                    }
+                    case BCIntegrate::BCCubaMethod::kCubaDefault : break;
+                    case BCIntegrate::BCCubaMethod::NCubaMethods : break;
+                }
             }
         }
     }
@@ -321,27 +403,109 @@ void GerdaFitter::DumpData() {
     }
 }
 
-void GerdaFitter::PrintExtendedFitSummary() {
-    // ┌┬┐
-    // ├┼┤
-    // └┴┘
-    BCLog::OutSummary("---------------------------------------------------");
-    BCLog::OutSummary(Form("Fit summary for model \'%s\':", GetName().data()));
+double GerdaFitter::GetFastPValue(const std::vector<double>& parameters, long niter) {
+
+    BCLog::OutSummary("Computing fast (corrected) p-value with " + std::to_string(niter) + " iterations");
+
+    if (parameters.size() != this->GetParameters().Size()) {
+        throw std::runtime_error("GetFastPValue: input number of parameters does not match the number of defined model parameters");
+    }
+
+    std::vector<unsigned> observed;
+    std::vector<double>   expected;
+    int nbins = 0;
+
+    for (auto& it : data) {
+        // compute total model
+        TH1* sum = nullptr;
+        for (auto& h : it.comp) {
+            h.second->Scale(parameters[h.first]);
+            // compute total model
+            if (!sum) sum = dynamic_cast<TH1*>(h.second->Clone());
+            else      sum->Add(h.second);
+        }
+        for (int b = it.brange.first; b < it.brange.second; ++b) {
+            observed.push_back(it.data->GetBinContent(b));
+            expected.push_back(sum->GetBinContent(b));
+            nbins++;
+        }
+    }
+
+    TRandom3 rnd(0);
+    double pvalue = BCMath::CorrectPValue(
+        BCMath::FastPValue(observed, expected, niter, rnd.GetSeed()),
+        this->GetNFreeParameters(), nbins
+    );
+
+    return pvalue;
+}
+
+void GerdaFitter::PrintOptimizationSummary() {
+    // ┌─┬┐
+    // │ ││
+    // ├─┼┤
+    // └─┴┘
+    BCLog::OutSummary(Form("Optimization summary for model \'%s\':", GetName().data()));
     BCLog::OutSummary(Form("  Number of parameters:  Npar = %i", GetNParameters()));
     BCLog::OutSummary("  Best fit parameters (global mode):");
+    auto logl_best = this->LogLikelihood(this->GetBestFitParameters());
+    BCLog::OutSummary("  LogLikelihood value at global mode: " + std::to_string(logl_best));
 
     auto best = this->GetBestFitParameters();
+
+    std::string line;
+    int maxnamelength = this->GetMaximumParameterNameLength(false);
+    line = "    ┌"; for (int i = 0; i < maxnamelength+7; ++i) line += "─"; line += "┬───────────────────┐";
+    BCLog::OutSummary(line);
+    BCLog::OutSummary(Form("    │ %-*s │ global mode       │", maxnamelength+5, "parameters"));
+    line = "    ├"; for (int i = 0; i < maxnamelength+7; ++i) line += "─"; line += "┼───────────────────┤";
+    BCLog::OutSummary(line);
     for (size_t i = 0; i < best.size(); ++i) {
-        std::string line = Form("    [%2i] %-*s : %.*g ± %.*g",
+        auto val = Form("%.*g", 2, best[i]);
+        auto err = Form("%.*g", 2, this->GetBestFitParameterErrors()[i]);
+        line = Form("    │ [%2i] %-*s │ %7s ± %-7s │",
                 int(i),
-                this->GetMaximumParameterNameLength(best.size() > this->GetNParameters()),
+                maxnamelength,
                 this->GetVariable(i).GetName().data(),
-                2, best[i],
-                2, this->GetBestFitParameterErrors()[i]
+                val, err
         );
         if (this->GetParameter(i).Fixed()) line += " (fixed)";
         BCLog::OutSummary(line);
     }
+    line = "    └"; for (int i = 0; i < maxnamelength+7; ++i) line += "─"; line += "┴───────────────────┘";
+    BCLog::OutSummary(line);
+}
 
-    BCLog::OutSummary("---------------------------------------------------");
+void GerdaFitter::PrintShortMarginalizationSummary() {
+    // ┌─┬┐
+    // │ ││
+    // ├─┼┤
+    // └─┴┘
+    BCLog::OutSummary(Form("Marginalization summary for model \'%s\':", GetName().data()));
+    BCLog::OutSummary(Form("  Number of parameters:  Npar = %i", GetNParameters()));
+    BCLog::OutSummary("  Parameters values (marginalized mode):");
+
+    std::string line;
+    int maxnamelength = this->GetMaximumParameterNameLength(false);
+
+    line = "    ┌"; for (int i = 0; i < maxnamelength+7; ++i) line += "─"; line += "┬─────────────────────────────┐";
+    BCLog::OutSummary(line);
+    BCLog::OutSummary(Form("    │ %-*s │ marg. mode ± 1σ             │", maxnamelength+5, "parameters"));
+    line = "    ├"; for (int i = 0; i < maxnamelength+7; ++i) line += "─"; line += "┼─────────────────────────────┤";
+    BCLog::OutSummary(line);
+    for (size_t i = 0; i < this->GetNParameters(); ++i) {
+        auto val  = Form("%.*g", 2, this->GetMarginalized(i).GetLocalMode());
+        auto err1 = Form("%.*g", 2, this->GetMarginalized(i).GetQuantile(0.16));
+        auto err2 = Form("%.*g", 2, this->GetMarginalized(i).GetQuantile(1-0.16));
+        line = Form("    │ [%2i] %-*s │ %7s + %-7s - %-7s │",
+                int(i),
+                maxnamelength,
+                this->GetVariable(i).GetName().data(),
+                val, err2, err1
+        );
+        if (this->GetParameter(i).Fixed()) line += " (fixed)";
+        BCLog::OutSummary(line);
+    }
+    line = "    └"; for (int i = 0; i < maxnamelength+7; ++i) line += "─"; line += "┴─────────────────────────────┘";
+    BCLog::OutSummary(line);
 }
