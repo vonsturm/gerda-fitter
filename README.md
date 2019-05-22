@@ -1,3 +1,5 @@
+<img src=".github/gerda-logo.png" align="left"  height="80"/>
+
 # gerda-fitter
 
 A fully JSON-configurable bayesian fitting engine (based on [BAT](https://github.com/bat/bat) and [ROOT](https://github.com/root-project/root)) for data in the form of ROOT histograms. Taylored on GERDA data and Probability Density Functions.
