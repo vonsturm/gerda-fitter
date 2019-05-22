@@ -6,34 +6,34 @@
     "fit" : {
         "../data/gerda-data-run0068-pca-nocuts.root" : {
             "M1_enrBEGe" : {
+                "gerda-pdfs" : "../data/gerda-pdfs/v2.0-RC",
                 "fit-range" : [700, 2500],
                 "components" : [
                     {
-                        "prefix" : "../data/gerda-pdfs/v2.0-RC/calib",
                         "part": {
-                            "single_s2_8220" : 52183,
-                            "single_s2_8408" : 25337,
-                            "single_s2_8570" : 79868,
-                            "single_s3_8220" : 55438,
-                            "single_s3_8405" : 43433,
-                            "single_s3_8570" : 24130
+                            "calib/single_s2_8220" : 52183,
+                            "calib/single_s2_8408" : 25337,
+                            "calib/single_s2_8570" : 79868,
+                            "calib/single_s3_8220" : 55438,
+                            "calib/single_s3_8405" : 43433,
+                            "calib/single_s3_8570" : 24130
                         },
                         "components" : {
                             "Th228" : {
                                 "isotope" : { "Tl208-run68pca" : 0.3539, "Bi212-run68pca" : 1 },
-                                "parameter-range" : [1, 50],
+                                "parameter-range" : [3.7E8, 3.74E8],
                                 "long-name" : "^{228}Th",
                                 "units" : "cts"
                             },
                             "Co60" : {
                                 "isotope": "Co60-run68pca",
-                                "parameter-range" : [1E-02, 1],
+                                "parameter-range" : [2E5, 5E5],
                                 "long-name" : "^{60}Co",
                                 "units" : "cts"
                             },
                             "Na22" : {
                                 "isotope" : "Na22-run68pca",
-                                "parameter-range" : [1E-02, 1],
+                                "parameter-range" : [2E5, 5E5],
                                 "long-name" : "^{22}Na",
                                 "units" : "cts"
                             }

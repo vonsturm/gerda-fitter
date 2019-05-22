@@ -82,10 +82,11 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
                             // get volume name
                             auto path_to_part = prefix + "/" + p.key();
                             if (path_to_part.back() == '/') path_to_part.pop_back();
+                            auto part = path_to_part.substr(path_to_part.find_last_of('/')+1);
                             path_to_part.erase(path_to_part.find_last_of('/'));
                             auto volume = path_to_part.substr(path_to_part.find_last_of('/')+1);
                             auto filename = prefix + "/" + p.key() + "/" + true_iso + "/" + "pdf-"
-                                + volume + "-" + p.key() + "-" + i + ".root";
+                                + volume + "-" + part + "-" + i + ".root";
                             BCLog::OutDebug("opening file " + filename);
                             BCLog::OutDebug("summing object '" + elh.key() + " with weight "
                                     + std::to_string(p.value().get<double>()/sumw));

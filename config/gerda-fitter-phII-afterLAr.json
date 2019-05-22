@@ -1,13 +1,13 @@
 {
     "id" : "phIIAfterLAr",
     "logging" : "summary",
-    "precision" : "kQuick",
+    "precision" : "kMedium",
     "output-dir" : "../results",
     "global-mode-search" : {
         "method" : "kOptMinuit"
     },
     "integration" : {
-        "enabled" : true,
+        "enabled" : false,
         "method" : "kIntCuba",
         "cuba-method" : "kCubaDivonne",
         "integrator-settings" : {
@@ -21,7 +21,7 @@
         }
     },
     "p-value" : {
-        "enabled" : true,
+        "enabled" : false,
         "iterations" : 1E07
     },
     "fit" : {
