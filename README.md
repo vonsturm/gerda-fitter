@@ -90,7 +90,8 @@ As instance, one might want to use the GERDA PDFs distributed within [gerda-mage
             "isotope" : { "Tl208-larveto" : 0.3539, "Bi212-larveto" : 1 },  // specify a mixture of isotopes
             "parameter-range" : [0, 4E5],
             "long-name" : "^{228}Th - cables",
-            "units" : "cts"
+            "units" : "cts",
+            "prior" : { "histogram" : "priorfile.root:objname" }  // specify prior via external TH1
         },
         "Co60-cables" : {
             "isotope": "Co60-run68pca", // no mixture here
@@ -120,7 +121,8 @@ or even provide manually a ROOT histogram:
             "hist-name" : "flat",
             "parameter-range" : [0, 1E-1],
             "long-name" : "#alpha-model - offset",
-            "units" : "cts"
+            "units" : "cts",
+            "prior" : { "histogram" : "priorfile.root:objname" }
         },
         ...
     }

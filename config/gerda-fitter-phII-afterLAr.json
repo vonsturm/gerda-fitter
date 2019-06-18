@@ -34,16 +34,16 @@
                     {
                         "root-file" : "../data/gerda-pdfs/v2.0-RC/alphas/analytic/pdf-functions.root",
                         "components" : {
-                            "alpha-offset" : {
-                                "hist-name" : "flat",
-                                "parameter-range" : [0, 1E-1],
-                                "long-name" : "#alpha-model - offset",
-                                "units" : "cts"
-                            },
                             "alpha-slope" : {
                                 "hist-name" : "ramp",
                                 "parameter-range" : [0, 1E-4],
                                 "long-name" : "#alpha-model - slope",
+                                "units" : "cts"
+                            },
+                            "alpha-offset" : {
+                                "hist-name" : "flat",
+                                "parameter-range" : [0, 1E-1],
+                                "long-name" : "#alpha-model - offset",
                                 "units" : "cts"
                             }
                         }
