@@ -96,6 +96,7 @@ class GerdaFitter : public BCModel {
 
     private:
 
+    std::string SafeROOTName(const std::string original);
     void DumpData();
     TH1* GetFitComponent(std::string filename, std::string objectname, TH1* data);
 };

@@ -50,7 +50,7 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
                     el.key().find_last_of('/')+1,
                     el.key().find_last_of('.') - el.key().find_last_of('/') - 1);
             basename += "_" + std::string(th->GetName());
-            th->SetName(BCAux::SafeName(basename).c_str());
+            th->SetName(this->SafeROOTName(basename).c_str());
 
             dataset _current_ds;
             _current_ds.data = th;
@@ -137,7 +137,7 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
                     else { // look into gerda-pdfs database
                         if (iso.value()["isotope"].is_string()) {
                             auto comp = sum_parts(iso.value()["isotope"]);
-                            comp->SetName((iso.key() + "_" + std::string(comp->GetName())).c_str());
+                            comp->SetName(this->SafeROOTName(iso.key() + "_" + std::string(comp->GetName())).c_str());
                             _current_ds.comp.insert({comp_idx, comp});
                         }
                         else if (iso.value()["isotope"].is_object()) {
@@ -155,7 +155,7 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
                                 else comp->Add(sum_parts(i.key()), i.value().get<double>()/sumwi);
 
                             }
-                            comp->SetName((iso.key() + "_" + std::string(comp->GetName())).c_str());
+                            comp->SetName(this->SafeROOTName(iso.key() + "_" + std::string(comp->GetName())).c_str());
                             _current_ds.comp.insert({comp_idx, comp});
                         }
                         else throw std::runtime_error("unexpected entry " + iso.value()["isotope"].dump() + "found in [\"fit\"][\""
@@ -604,4 +604,12 @@ void GerdaFitter::PrintShortMarginalizationSummary() {
     }
     line = "    └"; for (int i = 0; i < maxnamelength+7; ++i) line += "─"; line += "┴─────────────────────────────┘";
     BCLog::OutSummary(line);
+}
+
+std::string GerdaFitter::SafeROOTName(const std::string orig) {
+    TString torig(orig);
+
+    for (auto& c : {'.', '-', '/', ':', '|', '+'}) torig.ReplaceAll(c, '_');
+
+    return std::string(torig.Data());
 }
