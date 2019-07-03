@@ -19,6 +19,7 @@
 #include "TString.h"
 #include "TParameter.h"
 #include "TRandom3.h"
+#include "TCanvas.h"
 
 GerdaFitter::GerdaFitter(json config) : config(config) {
     // open log file
@@ -454,7 +455,7 @@ void GerdaFitter::SetIntegrationProperties(json j) {
                     case BCIntegrate::BCCubaMethod::kCubaCuhre : {
                         auto o = this->GetCubaCuhreOptions();
                         set_base_props(o);
-                        if (jjj["key"]     .is_number()) o.key      = jjj["key"]     .get<int>();
+                        if (jjj["key"].is_number()) o.key = jjj["key"].get<int>();
                         this->SetCubaOptions(o);
                     }
                     case BCIntegrate::BCCubaMethod::kCubaDefault : break;
@@ -483,6 +484,22 @@ void GerdaFitter::SaveHistograms(std::string filename) {
         sum->SetTitle("total_model");
         sum->Write("total_model");
         tf.cd();
+
+        TCanvas c("decomposition", "spc_dec", 900, 400);
+        c.SetLogy();
+        it.data->GetXaxis()->SetRange(it.brange.first, it.brange.second);
+        it.data->SetStats(false);
+        it.data->Draw("histo");
+        sum->SetLineColor(kRed);
+        for (auto& h : it.comp) {
+            h.second->SetLineColor(kBlack);
+            h.second->Draw("histo same");
+        }
+        sum->Draw("histo same");
+
+        auto pdfname = filename.substr(0, filename.find(".root")-1) + "_"
+            + std::string(it.data->GetName()) + ".pdf";
+        c.SaveAs(pdfname.c_str());
     }
 }
 
