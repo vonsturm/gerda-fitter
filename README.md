@@ -2,7 +2,10 @@
 
 # gerda-fitter
 
-A fully JSON-configurable bayesian fitting engine (based on [BAT](https://github.com/bat/bat) and [ROOT](https://github.com/root-project/root)) for data in the form of ROOT histograms. Taylored on GERDA data and Probability Density Functions.
+A fully JSON-configurable bayesian fitting engine (based on
+[BAT](https://github.com/bat/bat) and
+[ROOT](https://github.com/root-project/root)) for data in the form of ROOT
+histograms. Taylored on GERDA data and Probability Density Functions.
 
 ### Compile and install
 
@@ -14,7 +17,8 @@ Then just `PREFIX=/path/to/prefix make install`.
 
 ### Usage
 
-The `gerda-fitter` executable acceps a JSON config file as the only argument. Examples can be found in this repository under `config/`.
+The `gerda-fitter` executable acceps a JSON config file as the only argument.
+Examples can be found in this repository under `config/`.
 
 The JSON config file begins with some general settings:
 ```js
@@ -58,7 +62,8 @@ settings about the p-value determination
         "iterations" : 1E07  // play with this number until the p-value is stable
     },
 ```
-and finally the fit configuration section, where everything about the data and the fit components is specified in a modular fashion:
+and finally the fit configuration section, where everything about the data and
+the fit components is specified in a modular fashion:
 ```js
     "fit" : {  // takes a list of files with data histograms
         "../data/gerda-data-bkgmodel-phaseII-v04.00-larveto.root" : {  // takes a list of object names in the file
@@ -78,9 +83,15 @@ and finally the fit configuration section, where everything about the data and t
     }
 }
 ```
-the keys in the `"fit"` dictionary must be paths to the files that contain histograms to be fitted (the data). Then for each of these files the user must specify what histograms (ROOT objects) the program should try to fit. For every data histogram a list of fit components must be provided in the `"components"` array. The array is filled with JSON objects that can be of multiple types.
+the keys in the `"fit"` dictionary must be paths to the files that contain
+histograms to be fitted (the data). Then for each of these files the user must
+specify what histograms (ROOT objects) the program should try to fit. For every
+data histogram a list of fit components must be provided in the `"components"`
+array. The array is filled with JSON objects that can be of multiple types.
 
-As instance, one might want to use the GERDA PDFs distributed within [gerda-mage-sim](https://github.com/mppmu/gerda-mage-sim) using the following structure:
+As instance, one might want to use the GERDA PDFs distributed within
+[gerda-mage-sim](https://github.com/mppmu/gerda-mage-sim) using the following
+structure:
 ```js
 {
     "gerda-pdfs" : "../data/gerda-pdfs/v1.0"  // the gerda-pdfs path might be set here to override the global one
@@ -102,12 +113,12 @@ As instance, one might want to use the GERDA PDFs distributed within [gerda-mage
 },
 {
     "part": {  // you can also specify a mixture of parts!
-        "single_s2_8220" : 52183,
-        "single_s2_8408" : 25337,
-        "single_s2_8570" : 79868,
-        "single_s3_8220" : 55438,
-        "single_s3_8405" : 43433,
-        "single_s3_8570" : 24130
+        "calib/single_s2_8220" : 52183,
+        "calib/single_s2_8408" : 25337,
+        "calib/single_s2_8570" : 79868,
+        "calib/single_s3_8220" : 55438,
+        "calib/single_s3_8405" : 43433,
+        "calib/single_s3_8570" : 24130
     },
     "components" : { ... }
 }
@@ -128,3 +139,7 @@ or even provide manually a ROOT histogram:
     }
 },
 ```
+
+### Related projects
+
+- [gerda-factory](https://github.com/gipert/gerda-factory)
