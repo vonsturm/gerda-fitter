@@ -1,7 +1,7 @@
 {
-    "id" : "phIIBeforeCuts-lowenergy",
+    "id" : "phIIAfterLAr-lowenergy",
     "logging" : "summary",
-    "precision" : "kLow",
+    "precision" : "kMedium",
     "output-dir" : "../results",
     "global-mode-search" : {
         "method" : "kOptMinuit"
@@ -25,10 +25,10 @@
         "iterations" : 1E07
     },
     "fit" : {
-        "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
+        "../data/gerda-data-bkgmodel-phaseII-v04.00-lar.root" : {
             "M1_enrBEGe" : {
                 "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
-                "fit-range" : [40, 5300],
+                "fit-range" : [40, 2000],
                 "rebin-factor" : 5,
                 "components" : [
                     {
@@ -36,25 +36,14 @@
                         "components" : {
                             "alpha-slope" : {
                                 "hist-name" : "ramp",
-                                "parameter-range" : [2E-5, 1E-4],
+                                "parameter-range" : [0, 1E-4],
                                 "long-name" : "#alpha-model - slope",
                                 "units" : "cts"
                             },
                             "alpha-offset" : {
                                 "hist-name" : "flat",
-                                "parameter-range" : [0, 5E-2],
+                                "parameter-range" : [0, 2E-1],
                                 "long-name" : "#alpha-model - offset",
-                                "units" : "cts"
-                            }
-                        }
-                    },
-                    {
-                        "root-file" : "../data/bkg-alpha-enrBEGe-results.root",
-                        "components" : {
-                            "alpha-high-energy" : {
-                                "hist-name" : "alpha_model/highenergy_all_enrBEGe",
-                                "parameter-range" : [0, 2],
-                                "long-name" : "#alpha-model - high energy",
                                 "units" : "cts"
                             }
                         }
@@ -62,20 +51,20 @@
                     {
                         "part": "cables/cables_all",
                         "components" : {
-                            "Th228-cables" : {
-                                "isotope" : { "Tl208-raw" : 0.3539, "Bi212-raw" : 1 },
-                                "parameter-range" : [0, 1E5],
+                            "Bi212Tl208-cables" : {
+                                "isotope" : { "Tl208-lar" : 0.3539, "Bi212-lar" : 1 },
+                                "parameter-range" : [0, 4E5],
                                 "long-name" : "^{228}Th - cables",
                                 "units" : "cts"
                             },
                             "Co60-cables" : {
-                                "isotope": "Co60-raw",
-                                "parameter-range" : [0, 2E4],
+                                "isotope": "Co60-lar",
+                                "parameter-range" : [0, 1E5],
                                 "long-name" : "^{60}Co - cables",
                                 "units" : "cts"
                             },
-                            "U238-cables" : {
-                                "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 },
+                            "Bi214Pb214-cables" : {
+                                "isotope" : { "Bi214-lar" : 1, "Pb214-lar" : 1 },
                                 "parameter-range" : [0, 1E5],
                                 "long-name" : "^{238}U - cables",
                                 "units" : "cts"
@@ -85,9 +74,9 @@
                     {
                         "part": "gedet/intrinsic_bege",
                         "components" : {
-                            "2nbb" : {
-                                "isotope" : "2nbb-raw",
-                                "parameter-range" : [8E4, 1E5],
+                            "nubb" : {
+                                "isotope" : "2nbb-lar",
+                                "parameter-range" : [8E4, 9.2E4],
                                 "long-name" : "2#nu#beta#beta",
                                 "units" : "cts"
                             }
@@ -97,8 +86,8 @@
                         "part": "ge_holders/plates",
                         "components" : {
                             "Ac228-holders" : {
-                                "isotope" : "Ac228-raw",
-                                "parameter-range" : [3E3, 1E5],
+                                "isotope" : "Ac228-lar",
+                                "parameter-range" : [0, 1.5E4],
                                 "long-name" : "^{228}Ac - holders",
                                 "units" : "cts"
                             }
@@ -108,7 +97,7 @@
                         "part": "minishroud/ms_all",
                         "components" : {
                             "K40-close" : {
-                                "isotope" : "K40-raw",
+                                "isotope" : "K40-lar",
                                 "parameter-range" : [5E4, 1.5E6],
                                 "long-name" : "^{40}K - close",
                                 "units" : "cts"
@@ -118,10 +107,10 @@
                     {
                         "part": "electronics/cc3",
                         "components" : {
-                            "K40-cc3" : {
-                                "isotope" : "K40-raw",
-                                "parameter-range" : [1E5, 1E7],
-                                "long-name" : "^{40}K - electronics",
+                            "K40-far" : {
+                                "isotope" : "K40-lar",
+                                "parameter-range" : [1E5, 2E8],
+                                "long-name" : "^{40}K - far",
                                 "units" : "cts"
                             }
                         }
@@ -129,9 +118,9 @@
                     {
                         "part": "lar/sur_array",
                         "components" : {
-                            "K42-lar" : {
-                                "isotope" : "K42-raw",
-                                "parameter-range" : [5E7, 1.5E8],
+                            "K42-far" : {
+                                "isotope" : "K42-lar",
+                                "parameter-range" : [1E8, 3E8],
                                 "long-name" : "^{42}K - hom. in LAr",
                                 "units" : "cts"
                             }
@@ -140,15 +129,15 @@
                     {
                         "part": "lar/sur_array1",
                         "components" : {
-                            "Ar39-lar" : {
-                                "isotope" : "Ar39-raw",
-                                "parameter-range" : [5E9, 1E10],
+                            "Ar39" : {
+                                "isotope" : "Ar39-lar",
+                                "parameter-range" : [1E10, 1E11],
                                 "long-name" : "^{39}Ar - hom. in LAr",
                                 "units" : "cts"
                             },
-                            "Ar42-lar" : {
-                                "isotope" : "Ar42-raw",
-                                "parameter-range" : [5E9, 1E11],
+                            "Ar42" : {
+                                "isotope" : "Ar42-lar",
+                                "parameter-range" : [0, 3E10],
                                 "long-name" : "^{42}Ar - hom. in LAr",
                                 "units" : "cts"
                             }
@@ -157,21 +146,10 @@
                     {
                         "part": "lar/sur_array2",
                         "components" : {
-                            "Kr85-lar" : {
-                                "isotope" : "Kr85-raw",
-                                "parameter-range" : [2E7, 1E8],
+                            "Kr85" : {
+                                "isotope" : "Kr85-lar",
+                                "parameter-range" : [0, 2E8],
                                 "long-name" : "^{85}Kr - hom. in LAr",
-                                "units" : "cts"
-                            }
-                        }
-                    },
-                    {
-                        "part": "lar/above_array",
-                        "components" : {
-                            "K42-above-array" : {
-                                "isotope" : "K42-raw",
-                                "parameter-range" : [1E5, 1E7],
-                                "long-name" : "^{42}K - hom. in LAr above array",
                                 "units" : "cts"
                             }
                         }
@@ -180,26 +158,9 @@
                         "part": "gedet/nplus_bege",
                         "components" : {
                             "K42-close" : {
-                                "isotope" : "K42-raw",
-                                "parameter-range" : [0, 5E3],
+                                "isotope" : "K42-lar",
+                                "parameter-range" : [1E4, 3E4],
                                 "long-name" : "^{42}K - n^+",
-                                "units" : "cts"
-                            }
-                        }
-                    },
-                    {
-                        "part": "larveto/fibers",
-                        "components" : {
-                            "Pa234m-fibers" : {
-                                "isotope" : "Pa234m-raw",
-                                "parameter-range" : [0, 3E4],
-                                "long-name" : "^{234m}Pa - fibers",
-                                "units" : "cts"
-                            },
-                            "K40-far" : {
-                                "isotope" : "K40-raw",
-                                "parameter-range" : [1E3, 1E7],
-                                "long-name" : "^{40}K - far",
                                 "units" : "cts"
                             }
                         }

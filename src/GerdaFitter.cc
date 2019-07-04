@@ -21,7 +21,7 @@
 #include "TRandom3.h"
 #include "TCanvas.h"
 
-GerdaFitter::GerdaFitter(json config) : config(config) {
+GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
     // open log file
     auto outdir = config["output-dir"].get<std::string>();
     std::system(("mkdir -p " + outdir).c_str());
@@ -67,7 +67,7 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
             // loop over requested components
             for (auto& it : elh.value()["components"]) {
 
-                auto prefix = it.value("prefix", gerda_pdfs_path);
+                prefix = it.value("prefix", gerda_pdfs_path);
 
                 /* START INTERMEZZO */
                 // utility to sum over the requested parts (with weight) given isotope
@@ -206,15 +206,15 @@ GerdaFitter::GerdaFitter(json config) : config(config) {
                             }
                             auto filename = expr.substr(0, expr.find_first_of(':'));
                             auto objname = expr.substr(expr.find_first_of(':')+1, std::string::npos);
-                            TFile _tf(filename.c_str());
-                            if (!_tf.IsOpen()) throw std::runtime_error("invalid ROOT file: " + filename);
-                            auto obj = _tf.Get(objname.c_str());
+                            TFile _tff(filename.c_str());
+                            if (!_tff.IsOpen()) throw std::runtime_error("invalid ROOT file: " + filename);
+                            auto obj = _tff.Get(objname.c_str());
                             if (!obj) throw std::runtime_error("could not find object '" + objname + "' in file " + filename);
                             if (obj->InheritsFrom(TH1::Class())) {
                                 auto _hist = dynamic_cast<TH1*>(obj);
                                 // the following is a workaround for BAT's bad implementation of the BCTH1Prior constructor
                                 _hist->SetDirectory(nullptr);
-                                _tf.Close();
+                                _tff.Close();
 
                                 prior = new BCTH1Prior(_hist);
                                 delete _hist;
@@ -328,7 +328,7 @@ double GerdaFitter::LogLikelihood(const std::vector<double>& parameters) {
     return logprob;
 }
 
-TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, TH1* data) {
+TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, TH1* dataformat) {
     TFile _tf(filename.c_str());
     if (!_tf.IsOpen()) throw std::runtime_error("invalid ROOT file: " + filename);
     auto obj = _tf.Get(objectname.c_str());
@@ -337,10 +337,10 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
     if (obj->InheritsFrom(TH1::Class())) {
         auto _th = dynamic_cast<TH1*>(obj);
         if (_th->GetDimension() > 1) throw std::runtime_error("TH2/TH3 are not supported yet");
-        if (_th->GetNbinsX() != data->GetNbinsX() or
-            _th->GetDimension() != data->GetDimension() or
-            _th->GetXaxis()->GetXmin() != data->GetXaxis()->GetXmin() or
-            _th->GetXaxis()->GetXmax() != data->GetXaxis()->GetXmax()) {
+        if (_th->GetNbinsX() != dataformat->GetNbinsX() or
+            _th->GetDimension() != dataformat->GetDimension() or
+            _th->GetXaxis()->GetXmin() != dataformat->GetXaxis()->GetXmin() or
+            _th->GetXaxis()->GetXmax() != dataformat->GetXaxis()->GetXmax()) {
             throw std::runtime_error("histogram '" + objectname + "' in file " + filename
                 + " and corresponding data histogram do not have the same number of bins and/or same ranges");
         }
@@ -358,8 +358,8 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
         return _th;
     }
     else if (obj->InheritsFrom(TF1::Class())) {
-        auto _th = new TH1D(obj->GetName(), obj->GetTitle(), data->GetNbinsX(),
-            data->GetXaxis()->GetXmin(), data->GetXaxis()->GetXmax());
+        auto _th = new TH1D(obj->GetName(), obj->GetTitle(), dataformat->GetNbinsX(),
+            dataformat->GetXaxis()->GetXmin(), dataformat->GetXaxis()->GetXmax());
         for (int b = 1; b < _th->GetNbinsX(); ++b) {
             _th->SetBinContent(b, dynamic_cast<TF1*>(obj)->Eval(_th->GetBinCenter(b)));
         }
@@ -492,7 +492,7 @@ void GerdaFitter::SaveHistograms(std::string filename) {
         it.data->Draw("histo");
         sum->SetLineColor(kRed);
         for (auto& h : it.comp) {
-            h.second->SetLineColor(kBlack);
+            h.second->SetLineColor(kGray+1);
             h.second->Draw("histo same");
         }
         sum->Draw("histo same");
