@@ -5,7 +5,7 @@
  *
  */
 
-#include "GerdaFitter.h"
+#include "GerdaFitter.hh"
 
 // STL
 #include <iostream>
