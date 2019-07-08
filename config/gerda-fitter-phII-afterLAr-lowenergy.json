@@ -137,7 +137,7 @@
                             },
                             "Ar42" : {
                                 "isotope" : "Ar42-lar",
-                                "parameter-range" : [0, 3E10],
+                                "parameter-range" : [0, 1E9],
                                 "long-name" : "^{42}Ar - hom. in LAr",
                                 "units" : "cts"
                             }

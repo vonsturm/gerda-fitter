@@ -1,7 +1,7 @@
 {
     "id" : "phIIBeforeCuts",
     "logging" : "summary",
-    "precision" : "kLow",
+    "precision" : "kMedium",
     "output-dir" : "../results",
     "global-mode-search" : {
         "method" : "kOptMinuit"
