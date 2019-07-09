@@ -131,7 +131,7 @@
                         "components" : {
                             "Ar39" : {
                                 "isotope" : "Ar39-lar",
-                                "parameter-range" : [1E10, 1E11],
+                                "parameter-range" : [7E10, 7.3E10],
                                 "long-name" : "^{39}Ar - hom. in LAr",
                                 "units" : "cts"
                             },

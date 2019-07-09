@@ -32,16 +32,15 @@
                 "rebin-factor" : 5,
                 "components" : [
                     {
-                        "root-file" : "../data/gerda-pdfs/v2.1/alphas/analytic/pdf-functions.root",
                         "components" : {
                             "alpha-slope" : {
-                                "hist-name" : "ramp",
+                                "TFormula" : "x*(x>0 && x<5160)",
                                 "parameter-range" : [2E-5, 1E-4],
                                 "long-name" : "#alpha-model - slope",
                                 "units" : "cts"
                             },
                             "alpha-offset" : {
-                                "hist-name" : "flat",
+                                "TFormula" : "1",
                                 "parameter-range" : [0, 5E-2],
                                 "long-name" : "#alpha-model - offset",
                                 "units" : "cts"
@@ -131,7 +130,7 @@
                         "components" : {
                             "K42-lar" : {
                                 "isotope" : "K42-raw",
-                                "parameter-range" : [5E7, 1.5E8],
+                                "parameter-range" : [1E7, 6E7],
                                 "long-name" : "^{42}K - hom. in LAr",
                                 "units" : "cts"
                             }
@@ -142,13 +141,13 @@
                         "components" : {
                             "Ar39-lar" : {
                                 "isotope" : "Ar39-raw",
-                                "parameter-range" : [5E9, 1E10],
+                                "parameter-range" : [0, 7E9],
                                 "long-name" : "^{39}Ar - hom. in LAr",
                                 "units" : "cts"
                             },
                             "Ar42-lar" : {
                                 "isotope" : "Ar42-raw",
-                                "parameter-range" : [5E9, 1E11],
+                                "parameter-range" : [5.5E10, 6.5E10],
                                 "long-name" : "^{42}Ar - hom. in LAr",
                                 "units" : "cts"
                             }
@@ -170,7 +169,7 @@
                         "components" : {
                             "K42-above-array" : {
                                 "isotope" : "K42-raw",
-                                "parameter-range" : [1E5, 1E7],
+                                "parameter-range" : [3E7, 1E8],
                                 "long-name" : "^{42}K - hom. in LAr above array",
                                 "units" : "cts"
                             }
@@ -181,7 +180,7 @@
                         "components" : {
                             "K42-close" : {
                                 "isotope" : "K42-raw",
-                                "parameter-range" : [0, 5E3],
+                                "parameter-range" : [2E3, 7E4],
                                 "long-name" : "^{42}K - n^+",
                                 "units" : "cts"
                             }
@@ -192,7 +191,7 @@
                         "components" : {
                             "Pa234m-fibers" : {
                                 "isotope" : "Pa234m-raw",
-                                "parameter-range" : [0, 3E4],
+                                "parameter-range" : [0, 3E6],
                                 "long-name" : "^{234m}Pa - fibers",
                                 "units" : "cts"
                             },

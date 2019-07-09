@@ -139,6 +139,20 @@ or even provide manually a ROOT histogram:
     }
 },
 ```
+or even a ROOT `TFormula` (parameters are currently not supported):
+```js
+{
+    "components" : {
+        "alpha-slope" : {
+            "TFormula" : "x",
+            "parameter-range" : [0, 1E-1],
+            "long-name" : "#alpha-model - slope",
+            "units" : "cts",
+        },
+        ...
+    }
+},
+```
 
 ### Related projects
 

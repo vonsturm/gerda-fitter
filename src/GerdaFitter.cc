@@ -135,6 +135,28 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                         _current_ds.comp.insert({comp_idx, thh});
 
                     }
+                    else if (iso.value().contains("TFormula")) {
+                        if (!iso.value()["TFormula"].is_string()) {
+                            throw std::runtime_error("The \"TFormula\" key must be a string");
+                        }
+                        TF1 _tfunc(
+                            "func", iso.value()["TFormula"].get<std::string>().c_str(),
+                            _current_ds.data->GetXaxis()->GetXmin(),
+                            _current_ds.data->GetXaxis()->GetXmax()
+                        );
+                        if (_tfunc.GetNpar() > 0) throw std::runtime_error("TFormula parameters are not supported yet");
+                        auto thh = new TH1D(
+                            iso.key().c_str(), iso.key().c_str(),
+                            _current_ds.data->GetNbinsX(),
+                            _current_ds.data->GetXaxis()->GetXmin(),
+                            _current_ds.data->GetXaxis()->GetXmax()
+                        );
+                        for (int b = 1; b < thh->GetNbinsX(); ++b) {
+                            thh->SetBinContent(b, _tfunc.Eval(thh->GetBinCenter(b)));
+                        }
+                        thh->SetDirectory(nullptr);
+                        _current_ds.comp.insert({comp_idx, thh});
+                    }
                     else { // look into gerda-pdfs database
                         if (iso.value()["isotope"].is_string()) {
                             auto comp = sum_parts(iso.value()["isotope"]);
