@@ -245,8 +245,8 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                             else throw std::runtime_error("object '" + objname + "' in file " + filename + " is not an histogram");
                         }
                         // is a tformula TODO: i cannot make it work, it segfaults
-                        // else if (prior_cfg.contains("tformula")) {
-                        //     std::string expr = prior_cfg["tformula"].get<std::string>();
+                        // else if (prior_cfg.contains("TFormula")) {
+                        //     std::string expr = prior_cfg["TFormula"].get<std::string>();
                         //     // if there's a list of parameters after
                         //     if (expr.find(':') != std::string::npos) {
                         //         auto formula = expr.substr(0, expr.find_first_of(':'));
