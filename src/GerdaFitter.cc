@@ -34,9 +34,138 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
 
     this->SetName(config["id"]);
 
-    int comp_idx = 0;
+    /*
+     * create fit parameters
+     */
+
+    for (auto& el : config["fit"]["parameters"].items()) {
+        // do we already have a parameter with the same name?
+        bool already_exists = false;
+        for (unsigned int idx = 0; idx < this->GetNParameters(); ++idx) {
+            if (this->GetParameters().At(idx).GetName() == el.key()) {
+                already_exists = true;
+                break;
+            }
+        }
+
+        if (already_exists) {
+            BCLog::OutDetail("model parameter '" + el.key() + "' already exists, skipping");
+        }
+        else {
+            BCLog::OutDetail("adding model parameter '" + el.key() + "' (\""
+                + el.value().value("long-name", "") + "\" [" + el.value().value("units", "")
+                + "]) in range = [" + std::to_string(el.value()["range"][0].get<double>()) + ","
+                + std::to_string(el.value()["range"][1].get<double>()) + "]");
+
+            this->GetParameters().Add(
+                el.key(),
+                el.value()["range"][0].get<double>(),
+                el.value()["range"][1].get<double>(),
+                el.value().value("long-name", ""),
+                el.value().value("units", "")
+            );
+        }
+
+        // assign prior
+        if (el.value().contains("prior")) {
+            auto& prior_cfg = el.value()["prior"];
+            BCPrior* prior = nullptr;
+
+            if (prior_cfg.contains("tformula") and prior_cfg.contains("histogram")) {
+                throw std::runtime_error("please choose either \"tformula\" or \"histogram\" for parameter " + el.key());
+            }
+            // a ROOT histogram is given
+            if (prior_cfg.contains("histogram")) {
+                std::string expr = prior_cfg["histogram"].get<std::string>();
+                if (expr.find(':') == std::string::npos) {
+                    throw std::runtime_error("invalid \"histogram\" format for parameter " + el.key());
+                }
+                auto filename = expr.substr(0, expr.find_first_of(':'));
+                auto objname = expr.substr(expr.find_first_of(':')+1, std::string::npos);
+                TFile _tff(filename.c_str());
+                if (!_tff.IsOpen()) throw std::runtime_error("invalid ROOT file: " + filename);
+                auto obj = _tff.Get(objname.c_str());
+                if (!obj) throw std::runtime_error("could not find object '" + objname + "' in file " + filename);
+                if (obj->InheritsFrom(TH1::Class())) {
+                    auto _hist = dynamic_cast<TH1*>(obj);
+                    // the following is a workaround for BAT's bad implementation of the BCTH1Prior constructor
+                    _hist->SetDirectory(nullptr);
+                    _tff.Close();
+
+                    prior = new BCTH1Prior(_hist);
+                    delete _hist;
+                    BCLog::OutDetail("assigned prior via histogram '" + expr + "' to parameter '" + el.key() + "'");
+                }
+                else throw std::runtime_error("object '" + objname + "' in file " + filename + " is not an histogram");
+            }
+            // is a tformula TODO: i cannot make it work, it segfaults
+            // else if (prior_cfg.contains("TFormula")) {
+            //     std::string expr = prior_cfg["TFormula"].get<std::string>();
+            //     // if there's a list of parameters after
+            //     if (expr.find(':') != std::string::npos) {
+            //         auto formula = expr.substr(0, expr.find_first_of(':'));
+            //         auto parlist = expr.substr(expr.find_first_of(':')+1, std::string::npos);
+            //         TF1 _tformula(
+            //             "f1_prior", formula.c_str(),
+            //             el.value()["range"][0].get<double>(),
+            //             el.value()["range"][1].get<double>()
+            //         );
+
+            //         if (!_tformula.IsValid()) {
+            //             throw std::runtime_error("invalid TFormula given");
+            //         }
+
+            //         // eventually set parameters, if any
+            //         int par_idx = 0;
+            //         while (!parlist.empty()) {
+
+            //             auto val = std::stod(parlist.substr(0, parlist.find_first_of(',')));
+            //             _tformula.SetParameter(par_idx, val);
+            //             par_idx++;
+
+            //             if (parlist.find(',') == std::string::npos) parlist = "";
+            //             else parlist.erase(0, parlist.find_first_of(',')+1);
+            //         }
+
+            //         prior = new BCTF1Prior(_tformula);
+            //     }
+            //     // it's just the tformula
+            //     else {
+            //         prior = new BCTF1Prior(
+            //             expr,
+            //             el.value()["range"][0].get<double>(),
+            //             el.value()["range"][1].get<double>()
+            //         );
+            //     }
+            //     BCLog::OutDebug("assigned prior via '" + expr + "' TFormula to parameter '" + el.key() + "'");
+            // }
+            else {
+                throw std::runtime_error("supported prior types: 'histogram'");
+            }
+
+            if (prior != nullptr) {
+                if (!prior->IsValid()) {
+                    throw std::runtime_error("invalid prior set for parameter " + el.key());
+                }
+                this->GetParameters().Back().SetPrior(prior);
+            }
+            else {
+                this->GetParameters().Back().SetPriorConstant();
+                BCLog::OutDetail("assigned uniform prior to parameter '" + el.key() + "'");
+            }
+        }
+        else {
+            this->GetParameters().Back().SetPriorConstant();
+            BCLog::OutDetail("assigned uniform prior to parameter '" + el.key() + "'");
+        }
+    }
+
+    /*
+     * read in histograms
+     */
+
     // loop over files with data histograms
-    for (auto& el : config["fit"].items()) {
+    for (auto& el : config["fit"]["theoretical-expectations"].items()) {
         BCLog::OutDebug("opening data file " + el.key());
         TFile _tf(el.key().c_str());
         if (!_tf.IsOpen()) throw std::runtime_error("invalid ROOT file: " + el.key());
@@ -58,12 +187,12 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
 
             // get rebin factor
             auto rebin = elh.value().value("rebin-factor", 1);
-            BCLog::OutDetail("using rebin factor = " + std::to_string(rebin));
+            BCLog::OutDetail("using rebin factor = " + std::to_string(rebin) + "for dataset '" + elh.key() + "'");
 
             // eventually get a global value for the gerda-pdfs path
             auto gerda_pdfs_path = elh.value().value("gerda-pdfs", ".");
 
-            BCLog::OutDebug("getting the requested pdfs");
+            BCLog::OutDebug("getting the requested PDFs");
             // loop over requested components
             for (auto& it : elh.value()["components"]) {
 
@@ -126,7 +255,21 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
 
                 // loop over requested isotopes on the relative part
                 for (auto& iso : it["components"].items()) {
-                    BCLog::OutDebug("building pdf for entry " + iso.key());
+                    BCLog::OutDetail("adding a PDF for the '" + elh.key() + "' dataset with '"
+                        + iso.key() + "' as scaling parameter (debug mode for details)");
+                    // throw exception if component name is not in list
+                    bool exists = false;
+                    int comp_idx = 0;
+                    for (unsigned int idx = 0; idx < this->GetNParameters(); ++idx) {
+                        if (this->GetParameters().At(idx).GetName() == iso.key()) {
+                            comp_idx = idx;
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists) throw std::runtime_error(
+                        "fit parameter '" + iso.key() + "' not found, is it defined in \"parameters\"?"
+                    );
 
                     // it's a user defined file
                     if (it.contains("root-file")) {
@@ -155,6 +298,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                             thh->SetBinContent(b, _tfunc.Eval(thh->GetBinCenter(b)));
                         }
                         thh->SetDirectory(nullptr);
+                        thh->SetName(this->SafeROOTName(iso.key()).c_str());
                         _current_ds.comp.insert({comp_idx, thh});
                     }
                     else { // look into gerda-pdfs database
@@ -191,115 +335,6 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
 
                     // eventually rebin
                     _current_ds.comp[comp_idx]->Rebin(rebin);
-
-                    /*
-                     * create fit parameter
-                     */
-
-                    BCLog::OutDebug("adding model parameter '" + iso.key() + "' (\""
-                        + iso.value().value("long-name", "") + "\" [" + iso.value().value("units", "")
-                        + "]) in range = [" + std::to_string(iso.value()["parameter-range"][0].get<double>()) + ","
-                        + std::to_string(iso.value()["parameter-range"][1].get<double>()) + "]");
-
-                    this->GetParameters().Add(
-                        iso.key(),
-                        iso.value()["parameter-range"][0].get<double>(),
-                        iso.value()["parameter-range"][1].get<double>(),
-                        iso.value().value("long-name", ""),
-                        iso.value().value("units", "")
-                    );
-
-                    /*
-                     * assign prior
-                     */
-
-                    if (iso.value().contains("prior")) {
-                        auto& prior_cfg = iso.value()["prior"];
-                        BCPrior* prior = nullptr;
-
-                        if (prior_cfg.contains("tformula") and prior_cfg.contains("histogram")) {
-                            throw std::runtime_error("please choose either \"tformula\" or \"histogram\" for parameter " + iso.key());
-                        }
-                        // a ROOT histogram is given
-                        if (prior_cfg.contains("histogram")) {
-                            std::string expr = prior_cfg["histogram"].get<std::string>();
-                            if (expr.find(':') == std::string::npos) {
-                                throw std::runtime_error("invalid \"histogram\" format for parameter " + iso.key());
-                            }
-                            auto filename = expr.substr(0, expr.find_first_of(':'));
-                            auto objname = expr.substr(expr.find_first_of(':')+1, std::string::npos);
-                            TFile _tff(filename.c_str());
-                            if (!_tff.IsOpen()) throw std::runtime_error("invalid ROOT file: " + filename);
-                            auto obj = _tff.Get(objname.c_str());
-                            if (!obj) throw std::runtime_error("could not find object '" + objname + "' in file " + filename);
-                            if (obj->InheritsFrom(TH1::Class())) {
-                                auto _hist = dynamic_cast<TH1*>(obj);
-                                // the following is a workaround for BAT's bad implementation of the BCTH1Prior constructor
-                                _hist->SetDirectory(nullptr);
-                                _tff.Close();
-
-                                prior = new BCTH1Prior(_hist);
-                                delete _hist;
-                                BCLog::OutDebug("assigned prior via histogram '" + expr + "' to parameter '" + iso.key() + "'");
-                            }
-                            else throw std::runtime_error("object '" + objname + "' in file " + filename + " is not an histogram");
-                        }
-                        // is a tformula TODO: i cannot make it work, it segfaults
-                        // else if (prior_cfg.contains("TFormula")) {
-                        //     std::string expr = prior_cfg["TFormula"].get<std::string>();
-                        //     // if there's a list of parameters after
-                        //     if (expr.find(':') != std::string::npos) {
-                        //         auto formula = expr.substr(0, expr.find_first_of(':'));
-                        //         auto parlist = expr.substr(expr.find_first_of(':')+1, std::string::npos);
-                        //         TF1 _tformula(
-                        //             "f1_prior", formula.c_str(),
-                        //             iso.value()["parameter-range"][0].get<double>(),
-                        //             iso.value()["parameter-range"][1].get<double>()
-                        //         );
-
-                        //         if (!_tformula.IsValid()) {
-                        //             throw std::runtime_error("invalid TFormula given");
-                        //         }
-
-                        //         // eventually set parameters, if any
-                        //         int par_idx = 0;
-                        //         while (!parlist.empty()) {
-
-                        //             auto val = std::stod(parlist.substr(0, parlist.find_first_of(',')));
-                        //             _tformula.SetParameter(par_idx, val);
-                        //             par_idx++;
-
-                        //             if (parlist.find(',') == std::string::npos) parlist = "";
-                        //             else parlist.erase(0, parlist.find_first_of(',')+1);
-                        //         }
-
-                        //         prior = new BCTF1Prior(_tformula);
-                        //     }
-                        //     // it's just the tformula
-                        //     else {
-                        //         prior = new BCTF1Prior(
-                        //             expr,
-                        //             iso.value()["parameter-range"][0].get<double>(),
-                        //             iso.value()["parameter-range"][1].get<double>()
-                        //         );
-                        //     }
-                        //     BCLog::OutDebug("assigned prior via '" + expr + "' TFormula to parameter '" + iso.key() + "'");
-                        // }
-                        else {
-                            throw std::runtime_error("supported prior types: 'histogram'");
-                        }
-
-                        if (prior != nullptr) {
-                            if (!prior->IsValid()) {
-                                throw std::runtime_error("invalid prior set for parameter " + iso.key());
-                            }
-                            this->GetParameters().Back().SetPrior(prior);
-                        }
-                        else this->GetParameters().Back().SetPriorConstant();
-                    }
-                    else this->GetParameters().Back().SetPriorConstant();
-
-                    comp_idx++;
                 }
             }
 
@@ -506,22 +541,6 @@ void GerdaFitter::SaveHistograms(std::string filename) {
         sum->SetTitle("total_model");
         sum->Write("total_model");
         tf.cd();
-
-        TCanvas c("decomposition", "spc_dec", 900, 400);
-        c.SetLogy();
-        it.data->GetXaxis()->SetRange(it.brange.first, it.brange.second);
-        it.data->SetStats(false);
-        it.data->Draw("histo");
-        sum->SetLineColor(kRed);
-        for (auto& h : it.comp) {
-            h.second->SetLineColor(kGray+1);
-            h.second->Draw("histo same");
-        }
-        sum->Draw("histo same");
-
-        auto pdfname = filename.substr(0, filename.find(".root")-1) + "_"
-            + std::string(it.data->GetName()) + ".pdf";
-        c.SaveAs(pdfname.c_str());
     }
 }
 
@@ -649,6 +668,9 @@ std::string GerdaFitter::SafeROOTName(const std::string orig) {
     TString torig(orig);
 
     for (auto& c : {'.', '-', '/', ':', '|', '+'}) torig.ReplaceAll(c, '_');
+    for (auto& c : {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}) {
+        if (torig[0] == c) torig[0] = 'N';
+    }
 
     return std::string(torig.Data());
 }
