@@ -1,6 +1,6 @@
 {
-    "id" : "phIIBeforeCuts-lowenergy",
-    "logging" : "detail",
+    "id" : "phIIBeforeCuts",
+    "logging" : "summary",
     "precision" : "kMedium",
     "output-dir" : "../results",
     "global-mode-search" : {
@@ -72,12 +72,12 @@
                 "units" : "cts"
             },
             "2nbb-bege" : {
-                "range" : [8E4, 1E5],
+                "range" : [8E4, 9.2E4],
                 "long-name" : "2#nu#beta#beta - enrBEGe",
                 "units" : "cts"
             },
             "2nbb-coax" : {
-                "range" : [8E4, 5E5],
+                "range" : [8E4, 9.2E4],
                 "long-name" : "2#nu#beta#beta - enrCoax",
                 "units" : "cts"
             },
@@ -91,54 +91,39 @@
                 "long-name" : "^{40}K - close",
                 "units" : "cts"
             },
-            "K40-far" : {
-                "range" : [1E3, 1E7],
-                "long-name" : "^{40}K - far",
-                "units" : "cts"
-            },
             "K40-cc3" : {
-                "range" : [1E5, 1E7],
+                "range" : [1E5, 1E8],
                 "long-name" : "^{40}K - electronics",
                 "units" : "cts"
             },
             "K42-lar" : {
-                "range" : [1E7, 6E7],
+                "range" : [1E6, 3E8],
                 "long-name" : "^{42}K - hom. in LAr",
                 "units" : "cts"
             },
-            "Ar39-lar" : {
-                "range" : [0, 7E9],
-                "long-name" : "^{39}Ar - hom. in LAr",
-                "units" : "cts"
-            },
-            "Ar42-lar" : {
-                "range" : [5.5E10, 6.5E10],
-                "long-name" : "^{42}Ar - hom. in LAr",
-                "units" : "cts"
-            },
-            "Kr85-lar" : {
-                "range" : [2E7, 1E8],
-                "long-name" : "^{85}Kr - hom. in LAr",
-                "units" : "cts"
-            },
             "K42-above-array" : {
-                "range" : [3E7, 1E8],
+                "range" : [1E6, 1E8],
                 "long-name" : "^{42}K - hom. in LAr above array",
                 "units" : "cts"
             },
             "K42-nplus-bege" : {
-                "range" : [2E3, 7E4],
+                "range" : [0, 5E3],
                 "long-name" : "^{42}K - n^+ (BEGe)",
                 "units" : "cts"
             },
             "K42-nplus-coax" : {
-                "range" : [2E3, 7E4],
+                "range" : [0, 5E3],
                 "long-name" : "^{42}K - n^+ (Coax)",
                 "units" : "cts"
             },
             "Pa234m-fibers" : {
-                "range" : [0, 3E6],
+                "range" : [0, 3E4],
                 "long-name" : "^{234m}Pa - fibers",
+                "units" : "cts"
+            },
+            "K40-far" : {
+                "range" : [1E3, 1E7],
+                "long-name" : "^{40}K - far",
                 "units" : "cts"
             }
         },
@@ -218,25 +203,6 @@
                             "components" : {
                                 "K42-lar" : {
                                     "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-lar" : {
-                                    "isotope" : "Ar39-raw"
-                                },
-                                "Ar42-lar" : {
-                                    "isotope" : "Ar42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-lar" : {
-                                    "isotope" : "Kr85-raw"
                                 }
                             }
                         },
@@ -343,25 +309,6 @@
                             "components" : {
                                 "K42-lar" : {
                                     "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-lar" : {
-                                    "isotope" : "Ar39-raw"
-                                },
-                                "Ar42-lar" : {
-                                    "isotope" : "Ar42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-lar" : {
-                                    "isotope" : "Kr85-raw"
                                 }
                             }
                         },
