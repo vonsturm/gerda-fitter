@@ -69,14 +69,16 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
         // assign prior
         if (el.value().contains("prior")) {
             auto& prior_cfg = el.value()["prior"];
+            TH1* prior_hist = nullptr;
             BCPrior* prior = nullptr;
+            std::string expr;
 
-            if (prior_cfg.contains("tformula") and prior_cfg.contains("histogram")) {
-                throw std::runtime_error("please choose either \"tformula\" or \"histogram\" for parameter " + el.key());
+            if (prior_cfg.contains("TFormula") and prior_cfg.contains("histogram")) {
+                throw std::runtime_error("please choose either \"TFormula\" or \"histogram\" for parameter " + el.key());
             }
             // a ROOT histogram is given
             if (prior_cfg.contains("histogram")) {
-                std::string expr = prior_cfg["histogram"].get<std::string>();
+                expr = prior_cfg["histogram"].get<std::string>();
                 if (expr.find(':') == std::string::npos) {
                     throw std::runtime_error("invalid \"histogram\" format for parameter " + el.key());
                 }
@@ -87,61 +89,77 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                 auto obj = _tff.Get(objname.c_str());
                 if (!obj) throw std::runtime_error("could not find object '" + objname + "' in file " + filename);
                 if (obj->InheritsFrom(TH1::Class())) {
-                    auto _hist = dynamic_cast<TH1*>(obj);
+                    prior_hist = dynamic_cast<TH1*>(obj);
                     // the following is a workaround for BAT's bad implementation of the BCTH1Prior constructor
-                    _hist->SetDirectory(nullptr);
+                    prior_hist->SetDirectory(nullptr);
                     _tff.Close();
-
-                    prior = new BCTH1Prior(_hist);
-                    delete _hist;
-                    BCLog::OutDetail("assigned prior via histogram '" + expr + "' to parameter '" + el.key() + "'");
                 }
                 else throw std::runtime_error("object '" + objname + "' in file " + filename + " is not an histogram");
+                BCLog::OutDebug("found histogram prior '" + expr + "' for parameter '" + el.key() + "'");
             }
             // is a tformula TODO: i cannot make it work, it segfaults
-            // else if (prior_cfg.contains("TFormula")) {
-            //     std::string expr = prior_cfg["TFormula"].get<std::string>();
-            //     // if there's a list of parameters after
-            //     if (expr.find(':') != std::string::npos) {
-            //         auto formula = expr.substr(0, expr.find_first_of(':'));
-            //         auto parlist = expr.substr(expr.find_first_of(':')+1, std::string::npos);
-            //         TF1 _tformula(
-            //             "f1_prior", formula.c_str(),
-            //             el.value()["range"][0].get<double>(),
-            //             el.value()["range"][1].get<double>()
-            //         );
+            else if (prior_cfg.contains("TFormula")) {
+                TF1* _tformula = nullptr;
+                expr = prior_cfg["TFormula"].get<std::string>();
+                // if there's a list of parameters after
+                if (expr.find(':') != std::string::npos) {
+                    auto formula = expr.substr(0, expr.find_first_of(':'));
+                    auto parlist = expr.substr(expr.find_first_of(':')+1, std::string::npos);
+                    std::vector<double> parlist_vec;
+                    _tformula = new TF1(
+                        "f1_prior", formula.c_str(),
+                        el.value()["range"][0].get<double>(),
+                        el.value()["range"][1].get<double>()
+                    );
 
-            //         if (!_tformula.IsValid()) {
-            //             throw std::runtime_error("invalid TFormula given");
-            //         }
+                    if (!_tformula->IsValid()) throw std::runtime_error("invalid TFormula given");
 
-            //         // eventually set parameters, if any
-            //         int par_idx = 0;
-            //         while (!parlist.empty()) {
+                    // eventually set parameters, if any
+                    while (!parlist.empty()) {
+                        auto val = std::stod(parlist.substr(0, parlist.find_first_of(',')));
+                        parlist_vec.push_back(val);
 
-            //             auto val = std::stod(parlist.substr(0, parlist.find_first_of(',')));
-            //             _tformula.SetParameter(par_idx, val);
-            //             par_idx++;
+                        if (parlist.find(',') == std::string::npos) parlist = "";
+                        else parlist.erase(0, parlist.find_first_of(',')+1);
+                    }
+                    if ((int)parlist_vec.size() != _tformula->GetNpar()) {
+                        throw std::runtime_error("number of values specified in '"
+                                + el.key() + "' prior TFormula does not match number of TFormula parameters");
+                    }
 
-            //             if (parlist.find(',') == std::string::npos) parlist = "";
-            //             else parlist.erase(0, parlist.find_first_of(',')+1);
-            //         }
+                    for (size_t j = 0; j < parlist_vec.size(); ++j) _tformula->SetParameter(j, parlist_vec[j]);
+                }
+                // it's just the tformula
+                else {
+                    _tformula = new TF1(
+                        "f1_prior", expr.c_str(),
+                        el.value()["range"][0].get<double>(),
+                        el.value()["range"][1].get<double>()
+                    );
+                    if (_tformula->GetNpar() > 0) {
+                        throw std::runtime_error("TFormula specified for parameter '"
+                                + el.key() + "' is parametric but no parameters were specified");
+                    }
+                }
+                BCLog::OutDebug("found TFormula prior '" + expr + "' for parameter '" + el.key() + "'");
 
-            //         prior = new BCTF1Prior(_tformula);
-            //     }
-            //     // it's just the tformula
-            //     else {
-            //         prior = new BCTF1Prior(
-            //             expr,
-            //             el.value()["range"][0].get<double>(),
-            //             el.value()["range"][1].get<double>()
-            //         );
-            //     }
-            //     BCLog::OutDebug("assigned prior via '" + expr + "' TFormula to parameter '" + el.key() + "'");
-            // }
-            else {
-                throw std::runtime_error("supported prior types: 'histogram'");
+                // I did not manage to use BCTF1Prior from BAT, it segfaults for misterious reasons
+                // so I just make a temporary histogram out of the TFormula
+                prior_hist = new TH1D("h1_prior", "h1_prior", 1000,
+                    el.value()["range"][0].get<double>(),
+                    el.value()["range"][1].get<double>()
+                );
+                for (int j = 1; j <= prior_hist->GetNbinsX(); j++) {
+                    prior_hist->SetBinContent(j, _tformula->Eval(prior_hist->GetBinCenter(j)));
+                }
+                prior_hist->SetDirectory(nullptr);
+                BCLog::OutDebug("produced temporary prior 1000-bin histogram for parameter '" + el.key() + "'");
             }
+            else throw std::runtime_error("supported prior types: 'histogram', 'TFormula'");
+
+            prior = new BCTH1Prior(prior_hist);
+            delete prior_hist;
+            BCLog::OutDetail("assigned prior '" + expr + "' to parameter '" + el.key() + "'");
 
             if (prior != nullptr) {
                 if (!prior->IsValid()) {
