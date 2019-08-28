@@ -1,22 +1,22 @@
 {
     "id" : "run68pca",
     "logging" : "summary",
-    "precision" : "kLow",
+    "precision" : "kMedium",
     "output-dir" : "../results",
     "fit" : {
         "parameters" : {
             "Th228" : {
-                "range" : [3.7E8, 3.74E8],
+                "range" : [4.35E8, 4.5E8],
                 "long-name" : "^{228}Th",
                 "units" : "cts"
             },
             "Co60" : {
-                "range" : [2E5, 5E5],
+                "range" : [1E5, 5E5],
                 "long-name" : "^{60}Co",
                 "units" : "cts"
             },
             "Na22" : {
-                "range" : [2E5, 5E5],
+                "range" : [1E5, 5E5],
                 "long-name" : "^{22}Na",
                 "units" : "cts"
             }
@@ -24,27 +24,27 @@
         "theoretical-expectations" : {
             "../data/gerda-data-run0068-pca-nocuts.root" : {
                 "M1_enrBEGe" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.0-RC",
+                    "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
                     "fit-range" : [700, 2500],
                     "components" : [
                         {
                             "part": {
-                                "calib/single_s2_8220" : 52183,
-                                "calib/single_s2_8408" : 25337,
-                                "calib/single_s2_8570" : 79868,
-                                "calib/single_s3_8220" : 55438,
-                                "calib/single_s3_8405" : 43433,
-                                "calib/single_s3_8570" : 24130
+                                "calib/single_s2_8168" : 36591,
+                                "calib/single_s2_8396" : 11543,
+                                "calib/single_s2_8570" : 44988,
+                                "calib/single_s3_8220" : 23087,
+                                "calib/single_s3_8405" : 15630,
+                                "calib/single_s3_8570" : 13029
                             },
                             "components" : {
                                 "Th228" : {
-                                    "isotope" : { "Tl208-run68pca" : 0.3539, "Bi212-run68pca" : 1 }
+                                    "isotope" : { "Tl208-run68pca-raw" : 0.3539, "Bi212-run68pca-raw" : 1 }
                                 },
                                 "Co60" : {
-                                    "isotope": "Co60-run68pca"
+                                    "isotope": "Co60-run68pca-raw"
                                 },
                                 "Na22" : {
-                                    "isotope" : "Na22-run68pca"
+                                    "isotope" : "Na22-run68pca-raw"
                                 }
                             }
                         }

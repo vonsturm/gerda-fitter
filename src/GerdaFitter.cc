@@ -20,6 +20,7 @@
 #include "TParameter.h"
 #include "TRandom3.h"
 #include "TCanvas.h"
+#include "TParameter.h"
 
 GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
     // open log file
@@ -558,6 +559,13 @@ void GerdaFitter::SaveHistograms(std::string filename) {
         }
         sum->SetTitle("total_model");
         sum->Write("total_model");
+
+        // write fit range
+        TParameter<double> range_low("fit_range_lower", it.data->GetBinLowEdge(it.brange.first));
+        TParameter<double> range_upp("fit_range_upper", it.data->GetBinLowEdge(it.brange.second)
+                + it.data->GetBinWidth(it.brange.second));
+        range_low.Write();
+        range_upp.Write();
         tf.cd();
     }
 }
