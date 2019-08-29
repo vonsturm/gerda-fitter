@@ -9,7 +9,8 @@ void usage() {
               << "options:\n"
               << "  --help|-h        : print this help message and exit\n"
               << "  --logy|-l        : logarithmic Y axis\n"
-              << "  --width|-w       : canvas width in pixels\n"
+              << "  --width|-x       : canvas width in pixels\n"
+              << "  --height|-y      : canvas height in pixels\n"
               << "\n";
     gSystem->Exit(1);
 }
@@ -32,9 +33,10 @@ void plotspectra(std::string args = "") {
         argc++;
     }
 
-    const char* const short_opts = "w:lh";
+    const char* const short_opts = "x:y:lh";
     const option long_opts[] = {
-        {"width",  required_argument, nullptr, 'w'},
+        {"width",  required_argument, nullptr, 'x'},
+        {"height", required_argument, nullptr, 'y'},
         {"logy",   no_argument,       nullptr, 'l'},
         {"help",   no_argument,       nullptr, 'h'},
         {nullptr,  no_argument,       nullptr, 0  }
@@ -42,14 +44,17 @@ void plotspectra(std::string args = "") {
 
     // defaults
     int width = 1000;
+    int height = 600;
     bool logy = false;
 
     // read in with getopt
     int opt = 0;
     while ((opt = getopt_long(argc, argv, short_opts, long_opts, nullptr)) != -1) {
         switch (opt) {
-            case 'w':
+            case 'x':
                 width = std::stoi(optarg);
+            case 'y':
+                height = std::stoi(optarg);
             case 'l':
                 logy = true;
                 break;
@@ -83,9 +88,14 @@ void plotspectra(std::string args = "") {
             auto range_low = dynamic_cast<TParameter<double>*>(d->Get("fit_range_lower"));
             auto range_upp = dynamic_cast<TParameter<double>*>(d->Get("fit_range_upper"));
             if (range_low and range_upp) data->GetXaxis()->SetRangeUser(range_low->GetVal(), range_upp->GetVal());
-            model->SetLineColor(kRed);
 
-            auto canvas = new TCanvas(Form("c_%i", idx), Form("c_%i", idx), width, 600);
+            data->SetFillStyle(3003);
+            data->SetLineColorAlpha(kAzure-4, 1);
+            data->SetFillColorAlpha(kAzure-4, 1);
+            model->SetLineColor(kRed);
+            model->SetLineWidth(2);
+
+            auto canvas = new TCanvas(Form("c_%i", idx), Form("c_%i", idx), width, height);
             canvas->SetMargin(0.05, 0.05, 0.07, 0.07);
             data->Draw("hist");
             if (logy) gPad->SetLogy();

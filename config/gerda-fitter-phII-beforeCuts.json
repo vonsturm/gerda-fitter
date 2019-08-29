@@ -1,7 +1,7 @@
 {
     "id" : "phIIBeforeCuts",
     "logging" : "summary",
-    "precision" : "kMedium",
+    "precision" : "kHigh",
     "output-dir" : "../results",
     "global-mode-search" : {
         "method" : "kOptMinuit"
@@ -32,7 +32,7 @@
                 "units" : "cts"
             },
             "alpha-offset-bege" : {
-                "range" : [0, 5E-2],
+                "range" : [0, 1E-1],
                 "long-name" : "#alpha-model BEGe - offset",
                 "units" : "cts"
             },
@@ -47,18 +47,23 @@
                 "units" : "cts"
             },
             "alpha-offset-coax" : {
-                "range" : [0, 5E-2],
+                "range" : [0, 1E-1],
                 "long-name" : "#alpha-model Coax - offset",
                 "units" : "cts"
             },
             "alpha-high-energy-coax" : {
-                "range" : [0, 2],
+                "range" : [0.4, 1.4],
                 "long-name" : "#alpha-model Coax - high energy",
                 "units" : "cts"
             },
-            "Th228-cables" : {
+            "Bi212Tl208-cables" : {
                 "range" : [0, 1E5],
-                "long-name" : "^{228}Th - cables",
+                "long-name" : "^{212}Bi + ^{208}Tl - cables",
+                "units" : "cts"
+            },
+            "Pb214Bi214-cables" : {
+                "range" : [0, 1E6],
+                "long-name" : "^{214}Pb + ^{214}Pb - cables",
                 "units" : "cts"
             },
             "Co60-cables" : {
@@ -66,18 +71,13 @@
                 "long-name" : "^{60}Co - cables",
                 "units" : "cts"
             },
-            "U238-cables" : {
-                "range" : [0, 1E5],
-                "long-name" : "^{238}U - cables",
-                "units" : "cts"
-            },
             "2nbb-bege" : {
-                "range" : [8E4, 9.2E4],
+                "range" : [1E4, 1E5],
                 "long-name" : "2#nu#beta#beta - enrBEGe",
                 "units" : "cts"
             },
             "2nbb-coax" : {
-                "range" : [8E4, 9.2E4],
+                "range" : [8E4, 5E5],
                 "long-name" : "2#nu#beta#beta - enrCoax",
                 "units" : "cts"
             },
@@ -87,22 +87,27 @@
                 "units" : "cts"
             },
             "K40-close" : {
-                "range" : [5E4, 1.5E6],
+                "range" : [5E4, 1E8],
                 "long-name" : "^{40}K - close",
                 "units" : "cts"
             },
+            "K40-far" : {
+                "range" : [1E3, 1E8],
+                "long-name" : "^{40}K - far",
+                "units" : "cts"
+            },
             "K40-cc3" : {
-                "range" : [1E5, 1E8],
+                "range" : [0, 1E8],
                 "long-name" : "^{40}K - electronics",
                 "units" : "cts"
             },
-            "K42-lar" : {
-                "range" : [1E6, 3E8],
-                "long-name" : "^{42}K - hom. in LAr",
+            "K42-outside-ms" : {
+                "range" : [1E6, 1E12],
+                "long-name" : "^{42}K - hom. in LAr (outside MS)",
                 "units" : "cts"
             },
             "K42-above-array" : {
-                "range" : [1E6, 1E8],
+                "range" : [1E6, 1E7],
                 "long-name" : "^{42}K - hom. in LAr above array",
                 "units" : "cts"
             },
@@ -112,18 +117,8 @@
                 "units" : "cts"
             },
             "K42-nplus-coax" : {
-                "range" : [0, 5E3],
+                "range" : [0, 1E7],
                 "long-name" : "^{42}K - n^+ (Coax)",
-                "units" : "cts"
-            },
-            "Pa234m-fibers" : {
-                "range" : [0, 3E4],
-                "long-name" : "^{234m}Pa - fibers",
-                "units" : "cts"
-            },
-            "K40-far" : {
-                "range" : [1E3, 1E7],
-                "long-name" : "^{40}K - far",
                 "units" : "cts"
             }
         },
@@ -155,13 +150,13 @@
                         {
                             "part": "cables/cables_all",
                             "components" : {
-                                "Th228-cables" : {
+                                "Bi212Tl208-cables" : {
                                     "isotope" : { "Tl208-raw" : 0.3539, "Bi212-raw" : 1 }
                                 },
                                 "Co60-cables" : {
                                     "isotope": "Co60-raw"
                                 },
-                                "U238-cables" : {
+                                "Pb214Bi214-cables" : {
                                     "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
                                 }
                             }
@@ -199,9 +194,9 @@
                             }
                         },
                         {
-                            "part": "lar/sur_array",
+                            "part": "lar/outside_ms",
                             "components" : {
-                                "K42-lar" : {
+                                "K42-outside-ms" : {
                                     "isotope" : "K42-raw"
                                 }
                             }
@@ -225,9 +220,6 @@
                         {
                             "part": "larveto/fibers",
                             "components" : {
-                                "Pa234m-fibers" : {
-                                    "isotope" : "Pa234m-raw"
-                                },
                                 "K40-far" : {
                                     "isotope" : "K40-raw"
                                 }
@@ -261,13 +253,13 @@
                         {
                             "part": "cables/cables_all",
                             "components" : {
-                                "Th228-cables" : {
+                                "Bi212Tl208-cables" : {
                                     "isotope" : { "Tl208-raw" : 0.3539, "Bi212-raw" : 1 }
                                 },
                                 "Co60-cables" : {
                                     "isotope": "Co60-raw"
                                 },
-                                "U238-cables" : {
+                                "Pb214Bi214-cables" : {
                                     "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
                                 }
                             }
@@ -305,9 +297,9 @@
                             }
                         },
                         {
-                            "part": "lar/sur_array",
+                            "part": "lar/outside_ms",
                             "components" : {
-                                "K42-lar" : {
+                                "K42-outside-ms" : {
                                     "isotope" : "K42-raw"
                                 }
                             }
@@ -331,9 +323,75 @@
                         {
                             "part": "larveto/fibers",
                             "components" : {
-                                "Pa234m-fibers" : {
-                                    "isotope" : "Pa234m-raw"
+                                "K40-far" : {
+                                    "isotope" : "K40-raw"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "M2_enrE1plusE2" : {
+                    "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
+                    "fit-range" : [520, 3500],
+                    "rebin-factor" : 5,
+                    "components" : [
+                        {
+                            "part": "cables/cables_all",
+                            "components" : {
+                                "Bi212Tl208-cables" : {
+                                    "isotope" : { "Tl208-raw" : 0.3539, "Bi212-raw" : 1 }
                                 },
+                                "Co60-cables" : {
+                                    "isotope": "Co60-raw"
+                                },
+                                "Pb214Bi214-cables" : {
+                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
+                                }
+                            }
+                        },
+                        {
+                            "part": "ge_holders/plates",
+                            "components" : {
+                                "Ac228-holders" : {
+                                    "isotope" : "Ac228-raw"
+                                }
+                            }
+                        },
+                        {
+                            "part": "minishroud/ms_all",
+                            "components" : {
+                                "K40-close" : {
+                                    "isotope" : "K40-raw"
+                                }
+                            }
+                        },
+                        {
+                            "part": "electronics/cc3",
+                            "components" : {
+                                "K40-cc3" : {
+                                    "isotope" : "K40-raw"
+                                }
+                            }
+                        },
+                        {
+                            "part": "lar/outside_ms",
+                            "components" : {
+                                "K42-outside-ms" : {
+                                    "isotope" : "K42-raw"
+                                }
+                            }
+                        },
+                        {
+                            "part": "lar/above_array",
+                            "components" : {
+                                "K42-above-array" : {
+                                    "isotope" : "K42-raw"
+                                }
+                            }
+                        },
+                        {
+                            "part": "larveto/fibers",
+                            "components" : {
                                 "K40-far" : {
                                     "isotope" : "K40-raw"
                                 }
