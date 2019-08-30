@@ -27,6 +27,7 @@ The JSON config file begins with some general settings:
     "logging" : "summary",       // BAT verbosity level, see manual
     "precision" : "kMedium",     // precision (number and length of Markov chains), see BAT manual
     "output-dir" : "../results", // folder with fit results
+    // ...
 ```
 settings about the global mode search algorithm:
 ```js
@@ -48,12 +49,13 @@ settings about the numerical integration needed to normalize the posterior:
                     "flags" : 0
                 }
                 "kCubaVegas" : {         // here for Vegas...
-                    ...
+                    // ...
                 }
-                ...
+                // ...
             }
         }
     },
+    // ...
 ```
 settings about the p-value determination
 ```js
@@ -62,53 +64,76 @@ settings about the p-value determination
         "iterations" : 1E07  // play with this number until the p-value is stable
     },
 ```
-and finally the fit configuration section, where everything about the data and
+and finally the fit configuration section `"fit"`, where everything about the data and
 the fit components is specified in a modular fashion:
 ```js
-    "fit" : {  // takes a list of files with data histograms
-        "../data/gerda-data-bkgmodel-phaseII-v04.00-larveto.root" : {  // takes a list of object names in the file
-            "M1_enrBEGe" : {
-                "gerda-pdfs" : "../data/gerda-pdfs/v2.0-RC",  // set here the path to the gerda-pdfs, if you want
-                "fit-range" : [560, 2000],
-                "rebin-factor" : 5,
-                "components" : [  // here you must specify a list of PDFs you want to use
-                    { ... }, { ... }, ...
-                ]
-            },
-            "M1_enrCoax" : { ... },
-            ...
-        },
-        "../data/gerda-data-bkgmodel-phaseII-v04.00-nocuts.root" : { ... }
-        ...
+    // ...
+    "fit" : {  
+        "parameters" : { /* ... */ },  // define fit parameters globally
+        "theoretical-expectations" : { /* ... */ }  // import PDFs and associated parameters
     }
 }
 ```
-the keys in the `"fit"` dictionary must be paths to the files that contain
-histograms to be fitted (the data). Then for each of these files the user must
-specify what histograms (ROOT objects) the program should try to fit. For every
-data histogram a list of fit components must be provided in the `"components"`
-array. The array is filled with JSON objects that can be of multiple types.
+Let's start with the `"parameters"` section, here the fit parameters must be defined:
+```js
+"parameters" : { 
+    "alpha-slope-bege" : {  // unique internal name
+        "range" : [2E-5, 1E-4],
+        "long-name" : "#alpha-model BEGe - slope",
+        "units" : "cts",
+        "prior" : { "histogram" : "priorfile.root:objname" }  // specify prior via external TH1
+    },
+    "alpha-offset-bege" : {
+        "range" : [0, 1E-1],
+        "long-name" : "#alpha-model BEGe - offset",
+        "units" : "cts"
+        "prior" : { "TFormula" : "gaus:1,10,5" }  // specify prior via TFormula
+    },
+    // ...
+}
+```
+and then associated to PDFs in the `"theoretical-expectations"` section:
+```js
+"theoretical-expectations" : { // takes a list of files with data histograms
+    "../data/gerda-data-bkgmodel-phaseII-v04.00-lar.root" : {  // takes a list of object names in the file
+        "M1_enrBEGe" : {
+            "gerda-pdfs" : "../data/gerda-pdfs/v2.1",  // set here the path to the gerda-pdfs, if you want
+            "fit-range" : [560, 2000],
+            "rebin-factor" : 5,
+            "components" : [  // here you must specify a list of PDFs you want to use
+                { /* ... */ }, { /* ... */ }, // ...
+            ]
+        },
+        "M1_enrCoax" : { /* ... */ },
+        // ...
+    },
+    "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : { /* ... */ }
+    // ...
+}
+```
+the keys in the `"theoretical-expectations"` dictionary must be paths to the
+files that contain histograms to be fitted (the data). Then for each of these
+files the user must specify what histograms (ROOT objects) the program should
+try to fit. For every data histogram a list of fit components must be provided
+in the `"components"` array. The array is filled with JSON objects that can be
+of multiple types.
 
 As instance, one might want to use the GERDA PDFs distributed within
 [gerda-mage-sim](https://github.com/mppmu/gerda-mage-sim) using the following
 structure:
 ```js
 {
-    "gerda-pdfs" : "../data/gerda-pdfs/v1.0"  // the gerda-pdfs path might be set here to override the global one
+    "gerda-pdfs" : "../data/gerda-pdfs/v2.1"  // the gerda-pdfs path might be set here to override the global one
     "part": "cables/cables_all",
     "components" : {
-        "Th228-cables" : {  // the key will be used in BAT as internal parameter name, choose a unique name!
+        "Th228-cables" : {  // this parameter name must be defined in the "parameters" section!
             "isotope" : { "Tl208-larveto" : 0.3539, "Bi212-larveto" : 1 },  // specify a mixture of isotopes
-            "parameter-range" : [0, 4E5],
-            "long-name" : "^{228}Th - cables",
-            "units" : "cts",
-            "prior" : { "histogram" : "priorfile.root:objname" }  // specify prior via external TH1
         },
         "Co60-cables" : {
             "isotope": "Co60-run68pca", // no mixture here
-            ...
+            // ...
         },
-        ...
+        // ...
     }
 },
 {
@@ -120,7 +145,7 @@ structure:
         "calib/single_s3_8405" : 43433,
         "calib/single_s3_8570" : 24130
     },
-    "components" : { ... }
+    "components" : { /* ... */ }
 }
 ```
 or even provide manually a ROOT histogram:
@@ -130,12 +155,9 @@ or even provide manually a ROOT histogram:
     "components" : {
         "alpha-offset" : {
             "hist-name" : "flat",
-            "parameter-range" : [0, 1E-1],
-            "long-name" : "#alpha-model - offset",
-            "units" : "cts",
             "prior" : { "histogram" : "priorfile.root:objname" }
         },
-        ...
+        // ...
     }
 },
 ```
@@ -145,11 +167,8 @@ or even a ROOT `TFormula` (parameters are currently not supported):
     "components" : {
         "alpha-slope" : {
             "TFormula" : "x",
-            "parameter-range" : [0, 1E-1],
-            "long-name" : "#alpha-model - slope",
-            "units" : "cts",
         },
-        ...
+        // ...
     }
 },
 ```
