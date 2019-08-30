@@ -98,7 +98,7 @@ and then associated to PDFs in the `"theoretical-expectations"` section:
     "../data/gerda-data-bkgmodel-phaseII-v04.00-lar.root" : {  // takes a list of object names in the file
         "M1_enrBEGe" : {
             "gerda-pdfs" : "../data/gerda-pdfs/v2.1",  // set here the path to the gerda-pdfs, if you want
-            "fit-range" : [560, 2000],
+            "fit-range" : [[560, 2014], [2064, 5300]],  // note the possibility to skip regions
             "rebin-factor" : 5,
             "components" : [  // here you must specify a list of PDFs you want to use
                 { /* ... */ }, { /* ... */ }, // ...

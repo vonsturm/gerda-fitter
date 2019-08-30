@@ -64,9 +64,9 @@ NLOHMANN_JSON_SERIALIZE_ENUM(BCIntegrate::BCOptimizationMethod, {
 })
 
 struct dataset {
-    TH1* data;                  // histogram holding data
-    std::pair<int,int> brange;  // histogram range (bin index!)
-    std::map<int, TH1*> comp;   // catalog of fit components
+    TH1* data;                               // histogram holding data
+    std::vector<std::pair<int,int>> brange;  // histogram range (bin index!)
+    std::map<int, TH1*> comp;                // catalog of fit components
 };
 
 class GerdaFitter : public BCModel {

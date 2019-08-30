@@ -206,7 +206,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
 
             // get rebin factor
             auto rebin = elh.value().value("rebin-factor", 1);
-            BCLog::OutDetail("using rebin factor = " + std::to_string(rebin) + "for dataset '" + elh.key() + "'");
+            BCLog::OutDetail("using rebin factor = " + std::to_string(rebin) + " for dataset '" + elh.key() + "'");
 
             // eventually get a global value for the gerda-pdfs path
             auto gerda_pdfs_path = elh.value().value("gerda-pdfs", ".");
@@ -361,18 +361,47 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
             _current_ds.data->Rebin(rebin);
 
             // set fit range
-            _current_ds.brange = {1, _current_ds.data->GetNbinsX()};
             if (elh.value().contains("fit-range")) {
                 if (elh.value()["fit-range"].is_array()) {
-                    if (!elh.value()["fit-range"][0].is_null()) {
-                        _current_ds.brange.first = _current_ds.data->FindBin(elh.value()["fit-range"][0]);
-                        BCLog::OutDebug("Setting lower fit bin range to " + std::to_string(_current_ds.brange.first));
+                    if (elh.value()["fit-range"][0].is_array()) {
+                        BCLog::OutDebug("\"fit-range\" is an array of arrays");
+                        for (auto& r : elh.value()["fit-range"]) {
+                            if (!r.is_array()) throw std::runtime_error("non-array member detected in \"fit-range\"");
+                            if (!r[0].is_number() or !r[1].is_number()) {
+                                throw std::runtime_error("not-a-number value detected in \"fit-range\"");
+                            }
+                            _current_ds.brange.push_back({_current_ds.data->FindBin(r[0]), _current_ds.data->FindBin(r[1])});
+                            BCLog::OutDetail("Adding fit range [" +
+                                std::to_string(_current_ds.brange.back().first) + ", " +
+                                std::to_string(_current_ds.brange.back().second) + "] (bins)"
+                            );
+                        }
                     }
-                    if (!elh.value()["fit-range"][1].is_null()) {
-                        _current_ds.brange.second = _current_ds.data->FindBin(elh.value()["fit-range"][1]);
-                        BCLog::OutDebug("Setting upper fit bin range to " + std::to_string(_current_ds.brange.second));
+                    if (elh.value()["fit-range"][0].is_number()) {
+                        BCLog::OutDebug("\"fit-range\" is an array of numbers");
+                        _current_ds.brange.push_back({
+                            _current_ds.data->FindBin(elh.value()["fit-range"][0]),
+                            _current_ds.data->FindBin(elh.value()["fit-range"][1])
+                        });
+                        BCLog::OutDetail("Setting fit range to [" +
+                            std::to_string(_current_ds.brange.back().first) + ", " +
+                            std::to_string(_current_ds.brange.back().second) + "] (bins)"
+                        );
                     }
                 }
+                else throw std::runtime_error("wrong \"fit-range\" format, array expected");
+            }
+            else {
+                _current_ds.brange.push_back({1, _current_ds.data->GetNbinsX()});
+            }
+
+            // now sanity checks on the range
+            double _last = - std::numeric_limits<double>::infinity();
+            for (auto& r : _current_ds.brange) {
+                if (r.first > _last) _last = r.first;
+                else throw std::runtime_error("illegal ranges in \"fit-range\" detected, did you specify them in ascending order?");
+                if (r.second > _last) _last = r.second;
+                else throw std::runtime_error("illegal ranges in \"fit-range\" detected, did you specify them in ascending order?");
             }
 
             data.push_back(_current_ds);
@@ -394,11 +423,13 @@ double GerdaFitter::LogLikelihood(const std::vector<double>& parameters) {
     double logprob = 0;
     // loop over datasets
     for (auto& it : data) {
-        for (int b = it.brange.first; b < it.brange.second; ++b) {
-            // compute theoretical prediction for bin 'b'
-            double pred = 0;
-            for (auto& h : it.comp) pred += parameters[h.first]*h.second->GetBinContent(b);
-            logprob += BCMath::LogPoisson(it.data->GetBinContent(b), pred);
+        for (auto& r : it.brange) {
+            for (int b = r.first; b < r.second; ++b) {
+                // compute theoretical prediction for bin 'b'
+                double pred = 0;
+                for (auto& h : it.comp) pred += parameters[h.first]*h.second->GetBinContent(b);
+                logprob += BCMath::LogPoisson(it.data->GetBinContent(b), pred);
+            }
         }
     }
     return logprob;
@@ -561,9 +592,9 @@ void GerdaFitter::SaveHistograms(std::string filename) {
         sum->Write("total_model");
 
         // write fit range
-        TParameter<double> range_low("fit_range_lower", it.data->GetBinLowEdge(it.brange.first));
-        TParameter<double> range_upp("fit_range_upper", it.data->GetBinLowEdge(it.brange.second)
-                + it.data->GetBinWidth(it.brange.second));
+        TParameter<double> range_low("fit_range_lower", it.data->GetBinLowEdge(it.brange[0].first));
+        TParameter<double> range_upp("fit_range_upper", it.data->GetBinLowEdge(it.brange.back().second)
+                + it.data->GetBinWidth(it.brange.back().second));
         range_low.Write();
         range_upp.Write();
         tf.cd();
@@ -604,10 +635,12 @@ double GerdaFitter::GetFastPValue(const std::vector<double>& parameters, long ni
             if (!sum) sum = dynamic_cast<TH1*>(h.second->Clone());
             else      sum->Add(h.second);
         }
-        for (int b = it.brange.first; b < it.brange.second; ++b) {
-            observed.push_back(it.data->GetBinContent(b));
-            expected.push_back(sum->GetBinContent(b));
-            nbins++;
+        for (auto& r : it.brange) {
+            for (int b = r.first; b < r.second; ++b) {
+                observed.push_back(it.data->GetBinContent(b));
+                expected.push_back(sum->GetBinContent(b));
+                nbins++;
+            }
         }
     }
 

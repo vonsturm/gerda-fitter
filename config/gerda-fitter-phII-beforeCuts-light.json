@@ -1,5 +1,5 @@
 {
-    "id" : "phIIBeforeCuts_AlphaSum",
+    "id" : "phIIBeforeCuts_Light",
     "logging" : "summary",
     "precision" : "kMedium",
     "output-dir" : "../results",
@@ -101,7 +101,7 @@
             "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
                 "M1_enrBEGe" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
-                    "fit-range" : [560, 5300],
+                    "fit-range" : [[560, 2014], [2064, 5300]],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -186,7 +186,7 @@
                 },
                 "M1_enrCoax" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
-                    "fit-range" : [560, 5300],
+                    "fit-range" : [[560, 2014], [2064, 5300]],
                     "rebin-factor" : 10,
                     "components" : [
                         {
