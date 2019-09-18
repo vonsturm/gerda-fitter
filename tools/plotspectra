@@ -11,6 +11,7 @@ void usage() {
               << "  --logy|-l        : logarithmic Y axis\n"
               << "  --width|-x       : canvas width in pixels\n"
               << "  --height|-y      : canvas height in pixels\n"
+              << "  --rebin|-r       : rebin factor\n"
               << "\n";
     gSystem->Exit(1);
 }
@@ -33,10 +34,11 @@ void plotspectra(std::string args = "") {
         argc++;
     }
 
-    const char* const short_opts = "x:y:lh";
+    const char* const short_opts = "x:y:r:lh";
     const option long_opts[] = {
         {"width",  required_argument, nullptr, 'x'},
         {"height", required_argument, nullptr, 'y'},
+        {"rebin",  required_argument, nullptr, 'r'},
         {"logy",   no_argument,       nullptr, 'l'},
         {"help",   no_argument,       nullptr, 'h'},
         {nullptr,  no_argument,       nullptr, 0  }
@@ -45,6 +47,7 @@ void plotspectra(std::string args = "") {
     // defaults
     int width = 1000;
     int height = 600;
+    int rebin = 1;
     bool logy = false;
 
     // read in with getopt
@@ -55,6 +58,9 @@ void plotspectra(std::string args = "") {
                 width = std::stoi(optarg);
             case 'y':
                 height = std::stoi(optarg);
+            case 'r':
+                rebin = std::stoi(optarg);
+                break;
             case 'l':
                 logy = true;
                 break;
@@ -87,7 +93,6 @@ void plotspectra(std::string args = "") {
             auto model = dynamic_cast<TH1*>(d->Get("total_model"));
             auto range_low = dynamic_cast<TParameter<double>*>(d->Get("fit_range_lower"));
             auto range_upp = dynamic_cast<TParameter<double>*>(d->Get("fit_range_upper"));
-            if (range_low and range_upp) data->GetXaxis()->SetRangeUser(range_low->GetVal(), range_upp->GetVal());
 
             data->SetFillStyle(3003);
             data->SetLineColorAlpha(kAzure-4, 1);
@@ -96,7 +101,7 @@ void plotspectra(std::string args = "") {
             model->SetLineWidth(2);
 
             auto canvas = new TCanvas(Form("c_%i", idx), Form("c_%i", idx), width, height);
-            canvas->SetMargin(0.05, 0.05, 0.07, 0.07);
+            canvas->SetMargin(0.04, 0.01, 0.07, 0.07);
             data->Draw("hist");
             if (logy) gPad->SetLogy();
             // draw comp
@@ -107,10 +112,14 @@ void plotspectra(std::string args = "") {
                 if (cll->InheritsFrom(TH1::Class())) {
                     auto h = dynamic_cast<TH1*>(keyy->ReadObj());
                     h->SetLineColor(kGray+1);
+                    h->Rebin(rebin);
                     h->Draw("hist same");
                 }
             }
+            data->Rebin(rebin);
+            if (range_low and range_upp) data->GetXaxis()->SetRangeUser(range_low->GetVal(), range_upp->GetVal());
             data->Draw("hist same");
+            model->Rebin(rebin);
             model->Draw("hist same");
         }
         idx++;
