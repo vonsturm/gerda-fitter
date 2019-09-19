@@ -32,7 +32,7 @@
                 "units" : "cts"
             },
             "alpha-offset-bege" : {
-                "range" : [0, 5E-2],
+                "range" : [0, 1E-1],
                 "long-name" : "#alpha-model BEGe - offset",
                 "units" : "cts"
             },
@@ -59,7 +59,10 @@
             "2nbb-bege" : {
                 "range" : [8E4, 1E5],
                 "long-name" : "2#nu#beta#beta - enrBEGe",
-                "units" : "cts"
+                "units" : "cts",
+                "prior" : {
+                    "TFormula" : "gaus:1,89032,4000"
+                }
             },
             "Ac228-holders" : {
                 "range" : [0, 1E4],
@@ -69,16 +72,6 @@
             "K40-close" : {
                 "range" : [5E4, 1.5E6],
                 "long-name" : "^{40}K - close",
-                "units" : "cts"
-            },
-            "K40-far" : {
-                "range" : [1E3, 1E7],
-                "long-name" : "^{40}K - far",
-                "units" : "cts"
-            },
-            "K40-cc3" : {
-                "range" : [1E5, 1E7],
-                "long-name" : "^{40}K - electronics",
                 "units" : "cts"
             },
             "Ar39-lar" : {
@@ -92,25 +85,15 @@
                 "units" : "cts"
             },
             "K42-lar" : {
-                "range" : [1E7, 2E8],
+                "range" : [9E7, 1.2E8],
                 "long-name" : "^{42}K - hom. in LAr",
-                "units" : "cts"
-            },
-            "K42-above-array" : {
-                "range" : [0, 3E7],
-                "long-name" : "^{42}K - hom. in LAr above array",
-                "units" : "cts"
-            },
-            "K42-nplus-bege" : {
-                "range" : [2E3, 7E4],
-                "long-name" : "^{42}K - n^+ (BEGe)",
                 "units" : "cts"
             }
         },
         "theoretical-expectations" : {
             "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
                 "M1_enrBEGe" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
+                    "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
                     "fit-range" : [[100, 2014], [2064, 5250]],
                     "rebin-factor" : 5,
                     "components" : [
@@ -171,14 +154,6 @@
                             }
                         },
                         {
-                            "part": "electronics/cc3",
-                            "components" : {
-                                "K40-cc3" : {
-                                    "isotope" : "K40-raw"
-                                }
-                            }
-                        },
-                        {
                             "part": "lar/sur_array",
                             "components" : {
                                 "K42-lar" : {
@@ -199,30 +174,6 @@
                             "components" : {
                                 "Kr85-lar" : {
                                     "isotope" : "Kr85-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/above_array",
-                            "components" : {
-                                "K42-above-array" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "gedet/nplus_bege",
-                            "components" : {
-                                "K42-nplus-bege" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "larveto/fibers",
-                            "components" : {
-                                "K40-far" : {
-                                    "isotope" : "K40-raw"
                                 }
                             }
                         }

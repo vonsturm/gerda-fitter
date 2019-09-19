@@ -56,8 +56,10 @@ void plotspectra(std::string args = "") {
         switch (opt) {
             case 'x':
                 width = std::stoi(optarg);
+                break;
             case 'y':
                 height = std::stoi(optarg);
+                break;
             case 'r':
                 rebin = std::stoi(optarg);
                 break;
