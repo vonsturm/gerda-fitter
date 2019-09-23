@@ -1,5 +1,6 @@
-//usr/bin/env root -l ${0}\(\""$*"\"\); exit $?
+//usr/bin/env root -l ${0}\(\""${0}"\",\""${*}"\"\); exit $?
 
+#include "poisson_bands.hpp"
 #include "getopt.h"
 
 void usage() {
@@ -7,19 +8,22 @@ void usage() {
               << "USAGE: plotspectra gerda-fitter-*-histograms.root\n"
               << "\n"
               << "options:\n"
-              << "  --help|-h        : print this help message and exit\n"
-              << "  --logy|-l        : logarithmic Y axis\n"
-              << "  --width|-x       : canvas width in pixels\n"
-              << "  --height|-y      : canvas height in pixels\n"
-              << "  --rebin|-r       : rebin factor\n"
+              << "  -h, --help           : print this help message and exit\n"
+              << "  -l, --logy           : logarithmic Y axis\n"
+              << "  -x, --width <value>  : canvas width in pixels\n"
+              << "  -y, --height <value> : canvas height in pixels\n"
+              << "  -r, --rebin <value>  : rebin factor\n"
+              << "  -p, --pads <value>   : arrangement in pads, example value: 5x4\n"
+              << "  -b, --bands          : plot [1,2,3]-sigma bands (smallest intervals) onto data\n"
+              << "  -R, --residuals      : plot residuals (data/model) with [1,2,3]-sigma bands\n"
               << "\n";
     gSystem->Exit(1);
 }
 
-void plotspectra(std::string args = "") {
+void plotspectra(std::string prog = "plotspectra", std::string args = "") {
 
     // this is for getopt to work
-    args = "plotspectra " + args;
+    args = prog + " " + args;
 
     int argc = 0;
     char** argv = new char*[50];
@@ -34,14 +38,17 @@ void plotspectra(std::string args = "") {
         argc++;
     }
 
-    const char* const short_opts = "x:y:r:lh";
+    const char* const short_opts = "p:x:y:r:lbRh";
     const option long_opts[] = {
-        {"width",  required_argument, nullptr, 'x'},
-        {"height", required_argument, nullptr, 'y'},
-        {"rebin",  required_argument, nullptr, 'r'},
-        {"logy",   no_argument,       nullptr, 'l'},
-        {"help",   no_argument,       nullptr, 'h'},
-        {nullptr,  no_argument,       nullptr, 0  }
+        {"width",     required_argument, nullptr, 'x'},
+        {"height",    required_argument, nullptr, 'y'},
+        {"rebin",     required_argument, nullptr, 'r'},
+        {"pads",      required_argument, nullptr, 'p'},
+        {"logy",      no_argument,       nullptr, 'l'},
+        {"bands",     no_argument,       nullptr, 'b'},
+        {"residuals", no_argument,       nullptr, 'R'},
+        {"help",      no_argument,       nullptr, 'h'},
+        {nullptr,     no_argument,       nullptr, 0  }
     };
 
     // defaults
@@ -49,6 +56,9 @@ void plotspectra(std::string args = "") {
     int height = 600;
     int rebin = 1;
     bool logy = false;
+    std::string pads = "";
+    bool bands = false;
+    bool residuals = false;
 
     // read in with getopt
     int opt = 0;
@@ -63,8 +73,17 @@ void plotspectra(std::string args = "") {
             case 'r':
                 rebin = std::stoi(optarg);
                 break;
+            case 'p':
+                pads = optarg;
+                break;
             case 'l':
                 logy = true;
+                break;
+            case 'b':
+                bands = true;
+                break;
+            case 'R':
+                residuals = true;
                 break;
             case 'h': // -h or --help
             case '?': // Unrecognized option
@@ -87,6 +106,12 @@ void plotspectra(std::string args = "") {
     TIter next(tf->GetListOfKeys());
     TKey* key;
     int idx = 0;
+    TCanvas* canvas = nullptr;
+    int pads_x, pads_y;
+    if (!pads.empty()) {
+        pads_x = std::stoi(pads.substr(0, pads.find('x')));
+        pads_y = std::stoi(pads.substr(pads.find('x')+1, std::string::npos));
+    }
     while ((key = dynamic_cast<TKey*>(next()))) {
         auto cl = TClass::GetClass(key->GetClassName());
         if (cl->InheritsFrom(TDirectoryFile::Class())) {
@@ -95,34 +120,74 @@ void plotspectra(std::string args = "") {
             auto model = dynamic_cast<TH1*>(d->Get("total_model"));
             auto range_low = dynamic_cast<TParameter<double>*>(d->Get("fit_range_lower"));
             auto range_upp = dynamic_cast<TParameter<double>*>(d->Get("fit_range_upper"));
+            auto resgraph = dynamic_cast<TH1D*>(data->Clone());
 
             data->SetFillStyle(3003);
             data->SetLineColorAlpha(kAzure-4, 1);
             data->SetFillColorAlpha(kAzure-4, 1);
             model->SetLineColor(kRed);
             model->SetLineWidth(2);
+            resgraph->SetMarkerStyle(7);
 
-            auto canvas = new TCanvas(Form("c_%i", idx), Form("c_%i", idx), width, height);
-            canvas->SetMargin(0.04, 0.01, 0.07, 0.07);
-            data->Draw("hist");
-            if (logy) gPad->SetLogy();
-            // draw comp
-            TIter nextt(d->GetListOfKeys());
-            TKey* keyy;
-            while ((keyy = dynamic_cast<TKey*>(nextt()))) {
-                auto cll = TClass::GetClass(keyy->GetClassName());
-                if (cll->InheritsFrom(TH1::Class())) {
-                    auto h = dynamic_cast<TH1*>(keyy->ReadObj());
-                    h->SetLineColor(kGray+1);
-                    h->Rebin(rebin);
-                    h->Draw("hist same");
-                }
-            }
             data->Rebin(rebin);
-            if (range_low and range_upp) data->GetXaxis()->SetRangeUser(range_low->GetVal(), range_upp->GetVal());
-            data->Draw("hist same");
             model->Rebin(rebin);
-            model->Draw("hist same");
+            resgraph->Rebin(rebin);
+
+            if (!canvas) {
+                canvas = new TCanvas(Form("c_%i", idx), Form("c_%i", idx), width, height);
+                if (!pads.empty()) canvas->Divide(pads_x, pads_y, 0, 0);
+            }
+            if (canvas and !pads.empty()) {
+                canvas->cd(idx+1);
+                gPad->SetRightMargin(0.01);
+                gPad->SetLeftMargin(0.07);
+                gPad->SetBottomMargin(0.07);
+                gPad->SetTopMargin(0.07);
+                data->GetXaxis()->SetLabelSize(0.05);
+                data->GetYaxis()->SetLabelSize(0.05);
+            }
+            canvas->SetMargin(0.04, 0.01, 0.07, 0.07);
+
+            if (bands) {
+                if (residuals) resgraph->Divide(model);
+                resgraph->Draw("P0 HIST");
+
+                for (int b = resgraph->GetXaxis()->FindBin(range_low->GetVal());
+                         b <= resgraph->GetXaxis()->FindBin(range_upp->GetVal()); ++b) {
+
+                    draw_poisson_bands(
+                        model->GetBinContent(b),
+                        resgraph->GetBinLowEdge(b),
+                        resgraph->GetBinWidth(b),
+                        residuals ? true : false
+                    );
+
+                    if (model->GetBinContent(b) == 0) resgraph->SetBinContent(b, 1);
+                }
+                resgraph->Draw("P0 SAME HIST");
+                if (range_low and range_upp) resgraph->GetXaxis()->SetRangeUser(range_low->GetVal(), range_upp->GetVal());
+                if (logy) gPad->SetLogy();
+                gPad->RedrawAxis();
+            }
+            else {
+                data->Draw("hist");
+                if (logy) gPad->SetLogy();
+                // draw comp
+                TIter nextt(d->GetListOfKeys());
+                TKey* keyy;
+                while ((keyy = dynamic_cast<TKey*>(nextt()))) {
+                    auto cll = TClass::GetClass(keyy->GetClassName());
+                    if (cll->InheritsFrom(TH1::Class())) {
+                        auto h = dynamic_cast<TH1*>(keyy->ReadObj());
+                        h->SetLineColor(kGray+1);
+                        h->Rebin(rebin);
+                        h->Draw("hist same");
+                    }
+                }
+                if (range_low and range_upp) data->GetXaxis()->SetRangeUser(range_low->GetVal(), range_upp->GetVal());
+                data->Draw("hist same");
+                model->Draw("hist same");
+            }
         }
         idx++;
     }
