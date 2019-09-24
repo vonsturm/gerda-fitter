@@ -150,7 +150,9 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
 
             if (bands) {
                 if (residuals) resgraph->Divide(model);
+                if (range_low and range_upp) resgraph->GetXaxis()->SetRangeUser(range_low->GetVal(), range_upp->GetVal());
                 resgraph->Draw("P0 HIST");
+                gPad->Update();
 
                 for (int b = resgraph->GetXaxis()->FindBin(range_low->GetVal());
                          b <= resgraph->GetXaxis()->FindBin(range_upp->GetVal()); ++b) {
@@ -159,15 +161,19 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
                         model->GetBinContent(b),
                         resgraph->GetBinLowEdge(b),
                         resgraph->GetBinWidth(b),
-                        residuals ? true : false
+                        residuals ? true : false,
+                        resgraph
                     );
 
                     if (model->GetBinContent(b) == 0) resgraph->SetBinContent(b, 1);
                 }
                 resgraph->Draw("P0 SAME HIST");
-                if (range_low and range_upp) resgraph->GetXaxis()->SetRangeUser(range_low->GetVal(), range_upp->GetVal());
                 if (logy) gPad->SetLogy();
+
                 gPad->RedrawAxis();
+                TLine l;
+                l.DrawLine(gPad->GetUxmin(), gPad->GetUymax(), gPad->GetUxmax(), gPad->GetUymax());
+                l.DrawLine(gPad->GetUxmax(), gPad->GetUymin(), gPad->GetUxmax(), gPad->GetUymax());
             }
             else {
                 data->Draw("hist");

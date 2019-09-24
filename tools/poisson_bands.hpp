@@ -26,6 +26,7 @@
 #include "TMath.h"
 #include "TColor.h"
 #include "TBox.h"
+#include "TH1.h"
 
 /*
  * smallest_poisson_interval(prob_coverage, poisson_mean)
@@ -88,10 +89,12 @@ int col_idx = 0;
  * draws TBoxes corresponding to 68, 95 and 98 coverage intervals for poisson
  * (discrete) distribution with mean `poisson_mean`. The location and size of
  * the bon on the x-axis must be provided with the second and third arguments.
- * The last boolean argument can be used to normalize boxes to the value of the
- * `poisson_mean`.
+ * The boolean argument `residuals` can be used to normalize boxes to the value
+ * of the `poisson_mean`. The histogram onto which the bands will be drawn can
+ * be provided as a last argument, and the boxes will be clipped to its frame
+ * size.
  */
-void draw_poisson_bands(double mu, double x_low, double x_size, bool residuals = false) {
+void draw_poisson_bands(double mu, double x_low, double x_size, bool residuals = false, TH1* h = nullptr) {
 
     if (col_idx == 0) {
         col_idx = TColor::GetFreeColorIndex();
@@ -131,9 +134,27 @@ void draw_poisson_bands(double mu, double x_low, double x_size, bool residuals =
     if (sig1.first  == sig3.first ) sig1.first  = cent_b1; // privilege 3sig band over 1sig
     if (sig1.second == sig3.second) sig1.second = cent_b1;
 
-    auto box_b1 = new TBox(x_low, sig1.first, x_low + x_size, sig1.second);
-    auto box_b2 = new TBox(x_low, sig2.first, x_low + x_size, sig2.second);
-    auto box_b3 = new TBox(x_low, sig3.first, x_low + x_size, sig3.second);
+    auto xdw = x_low;
+    auto xup = x_low + x_size;
+
+    // do now draw bands outside histogram frame
+    if (h != nullptr) {
+        auto xc1 = gPad->GetUxmin(); auto xc2 = gPad->GetUxmax();
+        auto yc1 = gPad->GetUymin(); auto yc2 = gPad->GetUymax();
+
+        if (sig1.first  < yc1) sig1.first  = yc1;
+        if (sig2.first  < yc1) sig2.first  = yc1;
+        if (sig3.first  < yc1) sig3.first  = yc1;
+        if (sig1.second > yc2) sig1.second = yc2;
+        if (sig2.second > yc2) sig2.second = yc2;
+        if (sig3.second > yc2) sig3.second = yc2;
+        if (xdw < xc1) xdw = xc1;
+        if (xup > xc2) xup = xc2;
+    }
+
+    auto box_b1 = new TBox(xdw, sig1.first, xup, sig1.second);
+    auto box_b2 = new TBox(xdw, sig2.first, xup, sig2.second);
+    auto box_b3 = new TBox(xdw, sig3.first, xup, sig3.second);
 
     box_b3->SetFillColor(col_idx);
     box_b2->SetFillColor(col_idx+1);
