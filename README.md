@@ -161,12 +161,12 @@ or even provide manually a ROOT histogram:
     }
 },
 ```
-or even a ROOT `TFormula` (parameters are currently not supported):
+or even a ROOT `TFormula` in the form `"formula:par1,par2,..."`:
 ```js
 {
     "components" : {
         "alpha-slope" : {
-            "TFormula" : "x",
+            "TFormula" : "gaus:1,34,2",
         },
         // ...
     }
