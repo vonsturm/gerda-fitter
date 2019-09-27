@@ -18,7 +18,7 @@
                 "long-name" : "2#nu#beta#beta - enrBEGe",
                 "units" : "cts",
                 "prior" : {
-                    "TFormula" : "gaus:1,89032,4000"
+                    "TFormula" : "gaus:1,89032,10000"
                 }
             },
             "K42-lar" : {
@@ -41,7 +41,7 @@
             "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
                 "M1_ch0" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -88,7 +88,7 @@
                 },
                 "M1_ch1" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -135,7 +135,7 @@
                 },
                 "M1_ch2" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -182,7 +182,7 @@
                 },
                 "M1_ch3" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -229,7 +229,7 @@
                 },
                 "M1_ch4" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -370,7 +370,7 @@
                 },
                 "M1_ch11" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -417,7 +417,7 @@
                 },
                 "M1_ch12" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -511,7 +511,7 @@
                 },
                 "M1_ch14" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -558,7 +558,7 @@
                 },
                 "M1_ch15" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -605,7 +605,7 @@
                 },
                 "M1_ch16" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -652,7 +652,7 @@
                 },
                 "M1_ch17" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -699,7 +699,7 @@
                 },
                 "M1_ch18" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -746,7 +746,7 @@
                 },
                 "M1_ch19" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -793,7 +793,7 @@
                 },
                 "M1_ch20" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -840,7 +840,7 @@
                 },
                 "M1_ch21" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -887,7 +887,7 @@
                 },
                 "M1_ch22" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -934,7 +934,7 @@
                 },
                 "M1_ch23" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -981,7 +981,7 @@
                 },
                 "M1_ch24" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1028,7 +1028,7 @@
                 },
                 "M1_ch25" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1075,7 +1075,7 @@
                 },
                 "M1_ch26" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1122,7 +1122,7 @@
                 },
                 "M1_ch30" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1169,7 +1169,7 @@
                 },
                 "M1_ch31" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1216,7 +1216,7 @@
                 },
                 "M1_ch32" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1263,7 +1263,7 @@
                 },
                 "M1_ch33" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1310,7 +1310,7 @@
                 },
                 "M1_ch34" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1357,7 +1357,7 @@
                 },
                 "M1_ch35" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [40, 565],
+                    "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
