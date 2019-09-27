@@ -82,7 +82,7 @@ std::pair<float, float> smallest_poisson_interval(double cov, double mu) {
     return res;
 }
 
-int col_idx = 0;
+bool col_defined = false;
 /*
  * draw_poisson_bands(poisson_mean, box_x_left_location, box_size, normalize_to_mean)
  *
@@ -96,11 +96,12 @@ int col_idx = 0;
  */
 void draw_poisson_bands(double mu, double x_low, double x_size, bool residuals = false, TH1* h = nullptr) {
 
-    if (col_idx == 0) {
-        col_idx = TColor::GetFreeColorIndex();
+    int col_idx = 9000;
+    if (!col_defined) {
         new TColor(col_idx  , 238./255, 136./255, 102./255, "tol-lig-orange");
         new TColor(col_idx+1, 238./255, 221./255, 136./255, "tol-lig-lightyellow");
         new TColor(col_idx+2, 187./255, 204./255,  51./255, "tol-lig-pear");
+        col_defined = true;
     }
 
     // calculate smallest intervals
