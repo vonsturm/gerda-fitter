@@ -1,6 +1,6 @@
 {
     "id" : "phII-raw-Ar39-enrBEGe_fixed",
-    "logging" : "detail",
+    "logging" : "summary",
     "precision" : "kMedium",
     "output-dir" : "../results",
     "global-mode-search" : {

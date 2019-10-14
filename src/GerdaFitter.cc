@@ -241,10 +241,6 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
 
                     TH1* sum = nullptr;
                     if (it["part"].is_object()) {
-                        // compute sum of weights
-                        double sumw = 0;
-                        for (auto& p : it["part"].items()) sumw += p.value().get<double>();
-
                         for (auto& p : it["part"].items()) {
                             // get volume name
                             auto path_to_part = prefix + "/" + p.key();
@@ -256,16 +252,16 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                                 + volume + "-" + part + "-" + i + ".root";
                             BCLog::OutDebug("opening file " + filename);
                             BCLog::OutDebug("summing object '" + elh.key() + " with weight "
-                                    + std::to_string(p.value().get<double>()/sumw));
+                                    + std::to_string(p.value().get<double>()));
                             // get histogram
                             auto thh = this->GetFitComponent(filename, elh.key(), _current_ds.data);
                             // add it with weight
                             if (!sum) {
                                 sum = thh;
                                 sum->SetDirectory(nullptr); // please do not delete it when the TFile goes out of scope
-                                sum->Scale(p.value().get<double>()/sumw);
+                                sum->Scale(p.value().get<double>());
                             }
-                            else sum->Add(thh, p.value().get<double>()/sumw);
+                            else sum->Add(thh, p.value().get<double>());
                         }
                         return sum;
                     }
@@ -343,18 +339,15 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                             _current_ds.comp.insert({comp_idx, comp});
                         }
                         else if (iso.value()["isotope"].is_object()) {
-                            double sumwi = 0;
-                            for (auto& i : iso.value()["isotope"].items()) sumwi += i.value().get<double>();
-
                             TH1* comp = nullptr;
                             for (auto& i : iso.value()["isotope"].items()) {
                                 BCLog::OutDebug("scaling pdf for " + i.key() + " by a factor "
-                                        + std::to_string(i.value().get<double>()/sumwi));
+                                        + std::to_string(i.value().get<double>()));
                                 if (!comp) {
                                     comp = sum_parts(i.key());
-                                    comp->Scale(i.value().get<double>()/sumwi);
+                                    comp->Scale(i.value().get<double>());
                                 }
-                                else comp->Add(sum_parts(i.key()), i.value().get<double>()/sumwi);
+                                else comp->Add(sum_parts(i.key()), i.value().get<double>());
 
                             }
                             comp->SetName(this->SafeROOTName(iso.key() + "_" + std::string(comp->GetName())).c_str());
