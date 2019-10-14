@@ -1,5 +1,5 @@
 {
-    "id" : "phIIBeforeCuts_Light",
+    "id" : "phII-raw-global_light",
     "logging" : "summary",
     "precision" : "kMedium",
     "output-dir" : "../results",

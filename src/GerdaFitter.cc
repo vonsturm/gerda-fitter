@@ -48,23 +48,39 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                 break;
             }
         }
-
         if (already_exists) {
             BCLog::OutDetail("model parameter '" + el.key() + "' already exists, skipping");
         }
         else {
-            BCLog::OutDetail("adding model parameter '" + el.key() + "' (\""
-                + el.value().value("long-name", "") + "\" [" + el.value().value("units", "")
-                + "]) in range = [" + std::to_string(el.value()["range"][0].get<double>()) + ","
-                + std::to_string(el.value()["range"][1].get<double>()) + "]");
-
-            this->GetParameters().Add(
-                el.key(),
-                el.value()["range"][0].get<double>(),
-                el.value()["range"][1].get<double>(),
-                el.value().value("long-name", ""),
-                el.value().value("units", "")
-            );
+            if (el.value().contains("range")) {
+                this->GetParameters().Add(
+                    el.key(),
+                    el.value()["range"][0].get<double>(),
+                    el.value()["range"][1].get<double>(),
+                    el.value().value("long-name", ""),
+                    el.value().value("units", "")
+                );
+                BCLog::OutDetail("adding model parameter '" + el.key() + "' (\""
+                    + el.value().value("long-name", "") + "\" [" + el.value().value("units", "")
+                    + "]) in range = [" + std::to_string(el.value()["range"][0].get<double>()) + ","
+                    + std::to_string(el.value()["range"][1].get<double>()) + "]");
+            }
+            else if (el.value().contains("fixed")) {
+                // fix it?
+                if (!el.value()["fixed"].is_number()) {
+                    throw std::runtime_error("\"fixed\" value of parameter " + el.key() + " is not a number");
+                }
+                this->GetParameters().Add(
+                    el.key(),
+                    el.value()["fixed"].get<double>()-1,
+                    el.value()["fixed"].get<double>()+1,
+                    el.value().value("long-name", ""),
+                    el.value().value("units", "")
+                );
+                BCLog::OutDetail("fixing parameter " + el.key() + " to "
+                        + std::to_string(el.value()["fixed"].get<double>()));
+                this->GetParameters().Back().Fix(el.value()["fixed"].get<double>());
+            }
         }
 
         // assign prior
@@ -98,7 +114,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                 else throw std::runtime_error("object '" + objname + "' in file " + filename + " is not an histogram");
                 BCLog::OutDebug("found histogram prior '" + expr + "' for parameter '" + el.key() + "'");
             }
-            // is a tformula TODO: i cannot make it work, it segfaults
+            // is a tformula
             else if (prior_cfg.contains("TFormula")) {
                 TF1* _tformula = nullptr;
                 expr = prior_cfg["TFormula"].get<std::string>();
@@ -108,7 +124,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                     auto parlist = expr.substr(expr.find_first_of(':')+1, std::string::npos);
                     std::vector<double> parlist_vec;
                     _tformula = new TF1(
-                        "f1_prior", formula.c_str(),
+                        (el.key() + "prior_f").c_str(), formula.c_str(),
                         el.value()["range"][0].get<double>(),
                         el.value()["range"][1].get<double>()
                     );
@@ -146,7 +162,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
 
                 // I did not manage to use BCTF1Prior from BAT, it segfaults for misterious reasons
                 // so I just make a temporary histogram out of the TFormula
-                prior_hist = new TH1D("h1_prior", "h1_prior", 1000,
+                prior_hist = new TH1D((el.key() + "prior_h").c_str(), "h1_prior", 1000,
                     el.value()["range"][0].get<double>(),
                     el.value()["range"][1].get<double>()
                 );
@@ -707,16 +723,17 @@ void GerdaFitter::PrintShortMarginalizationSummary() {
     line = "    ├"; for (int i = 0; i < maxnamelength+7; ++i) line += "─"; line += "┼─────────────────────────────┤";
     BCLog::OutSummary(line);
     for (size_t i = 0; i < this->GetNParameters(); ++i) {
-        auto val  = Form("%.*g", 2, this->GetMarginalized(i).GetLocalMode());
-        auto err1 = Form("%.*g", 2, this->GetMarginalized(i).GetQuantile(0.16));
-        auto err2 = Form("%.*g", 2, this->GetMarginalized(i).GetQuantile(1-0.16));
+        bool isfixed = this->GetParameter(i).Fixed();
+        auto val  = Form("%.*g", 2, isfixed ? this->GetParameter(i).GetFixedValue() : this->GetMarginalized(i).GetLocalMode());
+        auto err1 = Form("%.*g", 2, isfixed ? 0 : this->GetMarginalized(i).GetQuantile(0.16));
+        auto err2 = Form("%.*g", 2, isfixed ? 0 : this->GetMarginalized(i).GetQuantile(1-0.16));
         line = Form("    │ [%2i] %-*s │ %7s + %-7s - %-7s │",
                 int(i),
                 maxnamelength,
                 this->GetVariable(i).GetName().data(),
                 val, err2, err1
         );
-        if (this->GetParameter(i).Fixed()) line += " (fixed)";
+        if (isfixed) line += " (fixed)";
         BCLog::OutSummary(line);
     }
     line = "    └"; for (int i = 0; i < maxnamelength+7; ++i) line += "─"; line += "┴─────────────────────────────┘";

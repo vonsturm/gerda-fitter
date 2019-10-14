@@ -100,6 +100,10 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
 
     if (extra_args.empty()) usage();
 
+    // do not display any of the standard histogram decorations
+    gStyle->SetOptStat(false);
+    gStyle->SetOptFit(0);
+
     auto tf = new TFile(extra_args[0].c_str(), "read");
 
     // loop over keys 

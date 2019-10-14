@@ -89,6 +89,11 @@ Let's start with the `"parameters"` section, here the fit parameters must be def
         "units" : "cts"
         "prior" : { "TFormula" : "gaus:1,10,5" }  // specify prior via TFormula
     },
+    "background" : {
+        "fixed" : 1234,  // parameters can be fixed to a value (not fit parameters anymore)
+        "long-name" : "Background model",
+        "units" : "cts"
+    },
     // ...
 }
 ```

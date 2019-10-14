@@ -1,5 +1,5 @@
 {
-    "id" : "phIIBeforeCuts-Ar39-BEGe",
+    "id" : "phII-raw-Ar39-split_BEGe",
     "logging" : "summary",
     "precision" : "kMedium",
     "output-dir" : "../results",
@@ -40,7 +40,7 @@
         "theoretical-expectations" : {
             "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
                 "M1_ch0" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
+                    "gerda-pdfs" : "../data/gerda-pdfs/2nufit/2nufit-best",
                     "fit-range" : [100, 565],
                     "rebin-factor" : 10,
                     "components" : [

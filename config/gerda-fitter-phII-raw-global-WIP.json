@@ -1,5 +1,5 @@
 {
-    "id" : "phIIBeforeCuts",
+    "id" : "phII-raw-global",
     "logging" : "summary",
     "precision" : "kHigh",
     "output-dir" : "../results",
