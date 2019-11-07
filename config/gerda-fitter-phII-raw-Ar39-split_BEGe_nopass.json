@@ -1,5 +1,5 @@
 {
-    "id" : "phII-raw-Ar39-split_BEGe",
+    "id" : "phII-raw-Ar39-split_BEGe_nopass",
     "logging" : "summary",
     "precision" : "kMedium",
     "output-dir" : "../results",
@@ -9,12 +9,12 @@
     "fit" : {
         "parameters" : {
             "Ar39-raw" : {
-                "range" : [7.6E10, 8E10],
+                "range" : [6.7E10, 6.95E10],
                 "long-name" : "^{39}Ar - hom. in LAr",
                 "units" : "cts"
             },
             "2nbb-bege" : {
-                "range" : [8E4, 1E5],
+                "range" : [1E4, 1E5],
                 "long-name" : "2#nu#beta#beta - enrBEGe",
                 "units" : "cts",
                 "prior" : {
@@ -22,7 +22,7 @@
                 }
             },
             "K42-raw" : {
-                "range" : [1.15E8, 1.8E8],
+                "range" : [1.15E8, 3.8E8],
                 "long-name" : "^{42}K - hom. in LAr",
                 "units" : "cts"
             },
@@ -32,16 +32,19 @@
                 "units" : "cts"
             },
             "Kr85-raw" : {
-                "range" : [8E7, 2E8],
+                "range" : [7E7, 2E8],
                 "long-name" : "^{85}Kr - hom. in LAr",
-                "units" : "cts"
+                "units" : "cts",
+                "prior" : {
+                    "TFormula" : "gaus:1,1.009E8,0.20E8"
+                }
             }
         },
         "theoretical-expectations" : {
             "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
                 "M1_ch0" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -88,7 +91,7 @@
                 },
                 "M1_ch1" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -135,7 +138,7 @@
                 },
                 "M1_ch2" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -182,195 +185,7 @@
                 },
                 "M1_ch3" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
-                    "rebin-factor" : 10,
-                    "components" : [
-                        {
-                            "part": "gedet/intrinsic_bege",
-                            "components" : {
-                                "2nbb-bege" : {
-                                    "isotope" : "2nbb-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array",
-                            "components" : {
-                                "K42-raw" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-raw" : {
-                                    "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "cables/cables_all",
-                            "components" : {
-                                "Pb214Bi214-cables" : {
-                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-raw" : {
-                                    "isotope" : "Kr85-raw"
-                                }
-                            }
-                        }
-                    ]
-                },
-                "M1_ch4" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
-                    "rebin-factor" : 10,
-                    "components" : [
-                        {
-                            "part": "gedet/intrinsic_bege",
-                            "components" : {
-                                "2nbb-bege" : {
-                                    "isotope" : "2nbb-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array",
-                            "components" : {
-                                "K42-raw" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-raw" : {
-                                    "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "cables/cables_all",
-                            "components" : {
-                                "Pb214Bi214-cables" : {
-                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-raw" : {
-                                    "isotope" : "Kr85-raw"
-                                }
-                            }
-                        }
-                    ]
-                },
-                "M1_ch5" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [150, 565],
-                    "rebin-factor" : 10,
-                    "components" : [
-                        {
-                            "part": "gedet/intrinsic_bege",
-                            "components" : {
-                                "2nbb-bege" : {
-                                    "isotope" : "2nbb-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array",
-                            "components" : {
-                                "K42-raw" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-raw" : {
-                                    "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "cables/cables_all",
-                            "components" : {
-                                "Pb214Bi214-cables" : {
-                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-raw" : {
-                                    "isotope" : "Kr85-raw"
-                                }
-                            }
-                        }
-                    ]
-                },
-                "M1_ch7" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [150, 565],
-                    "rebin-factor" : 10,
-                    "components" : [
-                        {
-                            "part": "gedet/intrinsic_bege",
-                            "components" : {
-                                "2nbb-bege" : {
-                                    "isotope" : "2nbb-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array",
-                            "components" : {
-                                "K42-raw" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-raw" : {
-                                    "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "cables/cables_all",
-                            "components" : {
-                                "Pb214Bi214-cables" : {
-                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-raw" : {
-                                    "isotope" : "Kr85-raw"
-                                }
-                            }
-                        }
-                    ]
-                },
-                "M1_ch11" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -417,7 +232,7 @@
                 },
                 "M1_ch12" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -511,54 +326,7 @@
                 },
                 "M1_ch14" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
-                    "rebin-factor" : 10,
-                    "components" : [
-                        {
-                            "part": "gedet/intrinsic_bege",
-                            "components" : {
-                                "2nbb-bege" : {
-                                    "isotope" : "2nbb-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array",
-                            "components" : {
-                                "K42-raw" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-raw" : {
-                                    "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "cables/cables_all",
-                            "components" : {
-                                "Pb214Bi214-cables" : {
-                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-raw" : {
-                                    "isotope" : "Kr85-raw"
-                                }
-                            }
-                        }
-                    ]
-                },
-                "M1_ch15" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -605,195 +373,7 @@
                 },
                 "M1_ch16" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
-                    "rebin-factor" : 10,
-                    "components" : [
-                        {
-                            "part": "gedet/intrinsic_bege",
-                            "components" : {
-                                "2nbb-bege" : {
-                                    "isotope" : "2nbb-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array",
-                            "components" : {
-                                "K42-raw" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-raw" : {
-                                    "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "cables/cables_all",
-                            "components" : {
-                                "Pb214Bi214-cables" : {
-                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-raw" : {
-                                    "isotope" : "Kr85-raw"
-                                }
-                            }
-                        }
-                    ]
-                },
-                "M1_ch17" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
-                    "rebin-factor" : 10,
-                    "components" : [
-                        {
-                            "part": "gedet/intrinsic_bege",
-                            "components" : {
-                                "2nbb-bege" : {
-                                    "isotope" : "2nbb-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array",
-                            "components" : {
-                                "K42-raw" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-raw" : {
-                                    "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "cables/cables_all",
-                            "components" : {
-                                "Pb214Bi214-cables" : {
-                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-raw" : {
-                                    "isotope" : "Kr85-raw"
-                                }
-                            }
-                        }
-                    ]
-                },
-                "M1_ch18" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
-                    "rebin-factor" : 10,
-                    "components" : [
-                        {
-                            "part": "gedet/intrinsic_bege",
-                            "components" : {
-                                "2nbb-bege" : {
-                                    "isotope" : "2nbb-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array",
-                            "components" : {
-                                "K42-raw" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-raw" : {
-                                    "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "cables/cables_all",
-                            "components" : {
-                                "Pb214Bi214-cables" : {
-                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-raw" : {
-                                    "isotope" : "Kr85-raw"
-                                }
-                            }
-                        }
-                    ]
-                },
-                "M1_ch19" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
-                    "rebin-factor" : 10,
-                    "components" : [
-                        {
-                            "part": "gedet/intrinsic_bege",
-                            "components" : {
-                                "2nbb-bege" : {
-                                    "isotope" : "2nbb-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array",
-                            "components" : {
-                                "K42-raw" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-raw" : {
-                                    "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "cables/cables_all",
-                            "components" : {
-                                "Pb214Bi214-cables" : {
-                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-raw" : {
-                                    "isotope" : "Kr85-raw"
-                                }
-                            }
-                        }
-                    ]
-                },
-                "M1_ch20" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -840,54 +420,7 @@
                 },
                 "M1_ch21" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
-                    "rebin-factor" : 10,
-                    "components" : [
-                        {
-                            "part": "gedet/intrinsic_bege",
-                            "components" : {
-                                "2nbb-bege" : {
-                                    "isotope" : "2nbb-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array",
-                            "components" : {
-                                "K42-raw" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-raw" : {
-                                    "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "cables/cables_all",
-                            "components" : {
-                                "Pb214Bi214-cables" : {
-                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-raw" : {
-                                    "isotope" : "Kr85-raw"
-                                }
-                            }
-                        }
-                    ]
-                },
-                "M1_ch22" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -934,7 +467,7 @@
                 },
                 "M1_ch23" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -981,7 +514,7 @@
                 },
                 "M1_ch24" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1028,101 +561,7 @@
                 },
                 "M1_ch25" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
-                    "rebin-factor" : 10,
-                    "components" : [
-                        {
-                            "part": "gedet/intrinsic_bege",
-                            "components" : {
-                                "2nbb-bege" : {
-                                    "isotope" : "2nbb-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array",
-                            "components" : {
-                                "K42-raw" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-raw" : {
-                                    "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "cables/cables_all",
-                            "components" : {
-                                "Pb214Bi214-cables" : {
-                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-raw" : {
-                                    "isotope" : "Kr85-raw"
-                                }
-                            }
-                        }
-                    ]
-                },
-                "M1_ch26" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
-                    "rebin-factor" : 10,
-                    "components" : [
-                        {
-                            "part": "gedet/intrinsic_bege",
-                            "components" : {
-                                "2nbb-bege" : {
-                                    "isotope" : "2nbb-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array",
-                            "components" : {
-                                "K42-raw" : {
-                                    "isotope" : "K42-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar39-raw" : {
-                                    "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "cables/cables_all",
-                            "components" : {
-                                "Pb214Bi214-cables" : {
-                                    "isotope" : { "Bi214-raw" : 1, "Pb214-raw" : 1 }
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array2",
-                            "components" : {
-                                "Kr85-raw" : {
-                                    "isotope" : "Kr85-raw"
-                                }
-                            }
-                        }
-                    ]
-                },
-                "M1_ch30" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1169,7 +608,7 @@
                 },
                 "M1_ch31" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1216,7 +655,7 @@
                 },
                 "M1_ch32" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1263,7 +702,7 @@
                 },
                 "M1_ch33" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1310,7 +749,7 @@
                 },
                 "M1_ch34" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -1357,7 +796,7 @@
                 },
                 "M1_ch35" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [100, 565],
+                    "fit-range" : [40, 565],
                     "rebin-factor" : 10,
                     "components" : [
                         {

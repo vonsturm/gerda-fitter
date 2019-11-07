@@ -25,7 +25,7 @@
             },
             "Bi212Tl208-cables" : {
                 "fixed" : 3.2E4,
-                "long-name" : "^{212}Bi + ^{208}Tl - cables",
+                "long-name" : "^{212}Bi + ^{208}Tl + ^{212}Pb - cables",
                 "units" : "cts"
             },
             "Co60-cables" : {
@@ -53,22 +53,17 @@
                 "long-name" : "^{40}K - close",
                 "units" : "cts"
             },
-            "K42-lar" : {
+            "K42-raw" : {
                 "fixed" : 1.1E8,
                 "long-name" : "^{42}K - hom. in LAr",
                 "units" : "cts"
             },
-            "Ar39-lar" : {
-                "range" : [7.4E10, 9E10],
+            "Ar39-raw" : {
+                "range" : [7.1E10, 7.3E10],
                 "long-name" : "^{39}Ar - hom. in LAr",
                 "units" : "cts"
             },
-            "Ar42-lar" : {
-                "range" : [0, 1E9],
-                "long-name" : "^{42}Ar - hom. in LAr",
-                "units" : "cts"
-            },
-            "Kr85-lar" : {
+            "Kr85-raw" : {
                 "range" : [8E6, 2E8],
                 "long-name" : "^{85}Kr - hom. in LAr",
                 "units" : "cts",
@@ -81,7 +76,7 @@
             "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
                 "M1_enrBEGe" : {
                     "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
-                    "fit-range" : [[165, 2014], [2064, 5250]],
+                    "fit-range" : [[40, 2014], [2064, 5250]],
                     "rebin-factor" : 5,
                     "components" : [
                         {
@@ -143,7 +138,7 @@
                         {
                             "part": "lar/sur_array",
                             "components" : {
-                                "K42-lar" : {
+                                "K42-raw" : {
                                     "isotope" : "K42-raw"
                                 }
                             }
@@ -151,23 +146,15 @@
                         {
                             "part": "lar/sur_array1",
                             "components" : {
-                                "Ar39-lar" : {
+                                "Ar39-raw" : {
                                     "isotope" : "Ar39-raw"
-                                }
-                            }
-                        },
-                        {
-                            "part": "lar/sur_array1",
-                            "components" : {
-                                "Ar42-lar" : {
-                                    "isotope" : "Ar42-raw"
                                 }
                             }
                         },
                         {
                             "part": "lar/sur_array2",
                             "components" : {
-                                "Kr85-lar" : {
+                                "Kr85-raw" : {
                                     "isotope" : "Kr85-raw"
                                 }
                             }

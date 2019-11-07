@@ -38,7 +38,7 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
         argc++;
     }
 
-    const char* const short_opts = "p:x:y:r:lbRh";
+    const char* const short_opts = "p:x:y:r:lbRLh";
     const option long_opts[] = {
         {"width",     required_argument, nullptr, 'x'},
         {"height",    required_argument, nullptr, 'y'},
@@ -47,6 +47,7 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
         {"logy",      no_argument,       nullptr, 'l'},
         {"bands",     no_argument,       nullptr, 'b'},
         {"residuals", no_argument,       nullptr, 'R'},
+        {"legend",    no_argument,       nullptr, 'L'},
         {"help",      no_argument,       nullptr, 'h'},
         {nullptr,     no_argument,       nullptr, 0  }
     };
@@ -59,6 +60,7 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
     std::string pads = "";
     bool bands = false;
     bool residuals = false;
+    bool draw_legend = false;
 
     // read in with getopt
     int opt = 0;
@@ -84,6 +86,9 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
                 break;
             case 'R':
                 residuals = true;
+                break;
+            case 'L':
+                draw_legend = true;
                 break;
             case 'h': // -h or --help
             case '?': // Unrecognized option
@@ -118,10 +123,11 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
     }
     while ((key = dynamic_cast<TKey*>(next()))) {
         auto cl = TClass::GetClass(key->GetClassName());
+        TH1 *data, *model, *h;
         if (cl->InheritsFrom(TDirectoryFile::Class())) {
             auto d = dynamic_cast<TDirectoryFile*>(key->ReadObj());
-            auto data = dynamic_cast<TH1*>(d->Get("fitted_data"));
-            auto model = dynamic_cast<TH1*>(d->Get("total_model"));
+            data = dynamic_cast<TH1*>(d->Get("fitted_data"));
+            model = dynamic_cast<TH1*>(d->Get("total_model"));
             auto range_low = dynamic_cast<TParameter<double>*>(d->Get("fit_range_lower"));
             auto range_upp = dynamic_cast<TParameter<double>*>(d->Get("fit_range_upper"));
             auto resgraph = dynamic_cast<TH1D*>(data->Clone());
@@ -188,7 +194,7 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
                 while ((keyy = dynamic_cast<TKey*>(nextt()))) {
                     auto cll = TClass::GetClass(keyy->GetClassName());
                     if (cll->InheritsFrom(TH1::Class())) {
-                        auto h = dynamic_cast<TH1*>(keyy->ReadObj());
+                        h = dynamic_cast<TH1*>(keyy->ReadObj());
                         h->SetLineColor(kGray+1);
                         h->Rebin(rebin);
                         h->Draw("hist same");
@@ -199,6 +205,16 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
                 model->Draw("hist same");
             }
         }
+
+        if (draw_legend) {
+            auto l = new TLegend;
+            l->SetLineWidth(0);
+            l->AddEntry(data, "Data", "f");
+            l->AddEntry(model, "Model", "l");
+            l->AddEntry(h, "Components", "l");
+            l->Draw();
+        }
+
         idx++;
     }
 }

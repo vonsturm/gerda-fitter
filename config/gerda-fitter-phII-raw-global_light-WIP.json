@@ -100,7 +100,7 @@
         "theoretical-expectations" : {
             "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
                 "M1_enrBEGe" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
+                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
                     "fit-range" : [[560, 2014], [2064, 5300]],
                     "rebin-factor" : 10,
                     "components" : [
@@ -185,7 +185,7 @@
                     ]
                 },
                 "M1_enrCoax" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
+                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
                     "fit-range" : [[560, 2014], [2064, 5300]],
                     "rebin-factor" : 10,
                     "components" : [
@@ -270,7 +270,7 @@
                     ]
                 },
                 "M2_enrE1plusE2" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
+                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
                     "fit-range" : [520, 2500],
                     "rebin-factor" : 10,
                     "components" : [
