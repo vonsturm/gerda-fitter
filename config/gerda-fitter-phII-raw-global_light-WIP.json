@@ -2,7 +2,7 @@
     "id" : "phII-raw-global_light",
     "logging" : "summary",
     "precision" : "kMedium",
-    "output-dir" : "../results",
+    "output-dir" : "../results/phII-raw-global_light",
     "global-mode-search" : {
         "method" : "kOptMinuit"
     },
@@ -21,7 +21,7 @@
         }
     },
     "p-value" : {
-        "enabled" : false,
+        "enabled" : true,
         "iterations" : 1E07
     },
     "fit" : {
@@ -42,47 +42,47 @@
                 "units" : "cts"
             },
             "Pb214Bi214-cables" : {
-                "range" : [5E4, 1E5],
+                "range" : [3E4, 6E4],
                 "long-name" : "^{214}Pb + ^{214}Bi - cables",
                 "units" : "cts"
             },
             "Co60-cables" : {
-                "range" : [1E1, 5E3],
+                "range" : [1E1, 5E4],
                 "long-name" : "^{60}Co - cables",
                 "units" : "cts"
             },
             "2nbb-bege" : {
-                "range" : [9E4, 1E5],
+                "range" : [8E4, 9E4],
                 "long-name" : "2#nu#beta#beta - enrBEGe",
                 "units" : "cts"
             },
             "2nbb-coax" : {
-                "range" : [4.8E5, 5.2E5],
+                "range" : [6.8E4, 7.4E4],
                 "long-name" : "2#nu#beta#beta - enrCoax",
                 "units" : "cts"
             },
             "Ac228-holders" : {
-                "range" : [1E1, 1E4],
+                "range" : [1E1, 5E4],
                 "long-name" : "^{228}Ac - holders",
                 "units" : "cts"
             },
             "K40-close" : {
-                "range" : [1.5E6, 2E6],
+                "range" : [1E4, 2E6],
                 "long-name" : "^{40}K - close",
                 "units" : "cts"
             },
             "K40-far" : {
-                "range" : [0, 1E6],
+                "range" : [0, 1E7],
                 "long-name" : "^{40}K - far",
                 "units" : "cts"
             },
             "K42-outside-ms" : {
-                "range" : [1.4E8, 1.8E8],
+                "range" : [1E6, 1E8],
                 "long-name" : "^{42}K - hom. in LAr (outside MS)",
                 "units" : "cts"
             },
             "K42-above-array" : {
-                "range" : [0, 1E6],
+                "range" : [3E7, 1E8],
                 "long-name" : "^{42}K - hom. in LAr above array",
                 "units" : "cts"
             },
@@ -92,7 +92,7 @@
                 "units" : "cts"
             },
             "K42-nplus-coax" : {
-                "range" : [1.5E6, 1.9E6],
+                "range" : [0, 1E5],
                 "long-name" : "^{42}K - n^+ (Coax)",
                 "units" : "cts"
             }
@@ -100,7 +100,7 @@
         "theoretical-expectations" : {
             "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
                 "M1_enrBEGe" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
+                    "gerda-pdfs" : "../data/gerda-pdfs/v2.4",
                     "fit-range" : [[560, 2014], [2064, 5300]],
                     "rebin-factor" : 10,
                     "components" : [
@@ -185,7 +185,7 @@
                     ]
                 },
                 "M1_enrCoax" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
+                    "gerda-pdfs" : "../data/gerda-pdfs/v2.4",
                     "fit-range" : [[560, 2014], [2064, 5300]],
                     "rebin-factor" : 10,
                     "components" : [

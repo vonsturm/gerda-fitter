@@ -85,7 +85,7 @@
         "theoretical-expectations" : {
             "../data/gerda-data-bkgmodel-phaseII-v04.00-lar.root" : {
                 "M1_enrBEGe" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
+                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
                     "fit-range" : [560, 2000],
                     "rebin-factor" : 5,
                     "components" : [
