@@ -460,17 +460,21 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
             throw std::runtime_error("histogram '" + objectname + "' in file " + filename
                 + " and corresponding data histogram do not have the same number of bins and/or same ranges");
         }
+        _th->SetDirectory(nullptr);
         TParameter<Long64_t>* _nprim = nullptr;
-        if (objectname.substr(0, 3) == "M1_") {
+        auto _name_nodir = objectname.substr(objectname.find_last_of('/')+1, std::string::npos);
+        if (_name_nodir.substr(0, 3) == "M1_") {
             _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesEdep"));
         }
-        else if (objectname.substr(0, 3) == "M2_") {
+        else if (_name_nodir.substr(0, 3) == "M2_") {
             _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesCoin"));
         }
-        long long int nprim = (_nprim) ? _nprim->GetVal() : 1;
-        _th->Scale(1./nprim);
+        if (!_nprim) {
+            BCLog::OutWarning("could not find suitable 'NumberOrPrimaries' object in '"
+                + filename + "', skipping normalization");
+        }
+        else _th->Scale(1./_nprim->GetVal());
 
-        _th->SetDirectory(nullptr);
         return _th;
     }
     else if (obj->InheritsFrom(TF1::Class())) {
