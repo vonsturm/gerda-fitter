@@ -12,6 +12,70 @@
     },
     "fit" : {
         "parameters" : {
+            "2nbb-semicoax" : {
+                "range" : [3E4, 5E4],
+                "long-name" : "2#nu#beta#beta - SemiCoax",
+                "units" : "cts",
+                "prior" : {
+                    "TFormula" : "gaus:1,40131i,2000"
+                }
+            },
+            "2nbb-bege" : {
+                "range" : [5E4, 6E4],
+                "long-name" : "2#nu#beta#beta - BEGe",
+                "units" : "cts",
+                "prior" : {
+                    "TFormula" : "gaus:1,55852,2500"
+                }
+            },
+            "2nbb-invcoax" : {
+                "range" : [2.4E4, 3.2E4],
+                "long-name" : "2#nu#beta#beta - InvCoax",
+                "units" : "cts",
+                "prior" : {
+                    "TFormula" : "gaus:1,26690,1200"
+                }
+            },
+            "Bi212Tl208-cables" : {
+                "range" : [0, 3E4],
+                "long-name" : "^{212}Bi + ^{208}Tl - cables",
+                "units" : "cts"
+            },
+            "Co60-cables" : {
+                "range" : [5E2, 8E3],
+                "long-name" : "^{60}Co - cables",
+                "units" : "cts"
+            },
+            "Pb214Bi214-cables" : {
+                "range" : [2E4, 3.5E4],
+                "long-name" : "^{214}Pb + ^{214}Bi - cables",
+                "units" : "cts"
+            },
+            "Ac228-holders" : {
+                "range" : [1E3, 1.5E4],
+                "long-name" : "^{228}Ac - holders",
+                "units" : "cts"
+            },
+            "K40-central-fiber-shroud" : {
+                "range" : [0, 3E5],
+                "long-name" : "^{40}K - central fiber shroud",
+                "units" : "cts"
+            },
+            "K40-close" : {
+                "range" : [4E5, 1E6],
+                "long-name" : "^{40}K - close",
+                "units" : "cts"
+            },
+            "K42-lar" : {
+                "range" : [6E7, 8E7],
+                "long-name" : "^{42}K - hom. in LAr",
+                "units" : "cts"
+            },
+            "Zn65-invcoax" : {
+                "range" : [0, 4E3],
+                "long-name" : "^{65}Zn - in InvCoax",
+                "units" : "cts"
+            },
             "alpha-slope-bege" : {
                 "range" : [0, 1E-4],
                 "long-name" : "#alpha-model BEGe - slope",
@@ -41,65 +105,6 @@
                 "range" : [0, 1E-1],
                 "long-name" : "#alpha-model InvCoax - offset",
                 "units" : "cts"
-            },
-            "Bi212Tl208-cables" : {
-                "range" : [0, 3E4],
-                "long-name" : "^{212}Bi + ^{208}Tl - cables",
-                "units" : "cts"
-            },
-            "Co60-cables" : {
-                "range" : [5E2, 8E3],
-                "long-name" : "^{60}Co - cables",
-                "units" : "cts"
-            },
-            "Pb214Bi214-cables" : {
-                "range" : [2E4, 3.5E4],
-                "long-name" : "^{214}Pb + ^{214}Bi - cables",
-                "units" : "cts"
-            },
-            "2nbb-semicoax" : {
-                "range" : [3E4, 5E4],
-                "long-name" : "2#nu#beta#beta - SemiCoax",
-                "units" : "cts",
-                "prior" : {
-                    "TFormula" : "gaus:1,40131i,2000"
-                }
-            },
-            "2nbb-bege" : {
-                "range" : [5E4, 6E4],
-                "long-name" : "2#nu#beta#beta - BEGe",
-                "units" : "cts",
-                "prior" : {
-                    "TFormula" : "gaus:1,55852,2500"
-                }
-            },
-            "2nbb-invcoax" : {
-                "range" : [2.4E4, 3.2E4],
-                "long-name" : "2#nu#beta#beta - InvCoax",
-                "units" : "cts",
-                "prior" : {
-                    "TFormula" : "gaus:1,26690,1200"
-                }
-            },
-            "K40-central-fiber-shroud" : {
-                "range" : [0, 3E5],
-                "long-name" : "^{40}K - central fiber shroud",
-                "units" : "cts"
-            },
-            "K40-close" : {
-                "range" : [4E5, 1E6],
-                "long-name" : "^{40}K - close",
-                "units" : "cts"
-            },
-            "K42-lar" : {
-                "range" : [6E7, 8E7],
-                "long-name" : "^{42}K - hom. in LAr",
-                "units" : "cts"
-            },
-            "Zn65-invcoax" : {
-                "range" : [0, 4E3],
-                "long-name" : "^{65}Zn - in InvCoax",
-                "units" : "cts"
             }
         },
         "theoretical-expectations" : {
@@ -128,6 +133,14 @@
                                 },
                                 "Pb214Bi214-cables" : {
                                     "isotope" : { "Bi214" : 1, "Pb214" : 1 }
+                                }
+                            }
+                        },
+                        {
+                            "part": "ge_holders/ge_holders_all",
+                            "components" : {
+                                "Ac228-holders" : {
+                                    "isotope" : "Ac228"
                                 }
                             }
                         },
@@ -203,6 +216,14 @@
                             }
                         },
                         {
+                            "part": "ge_holders/ge_holders_all",
+                            "components" : {
+                                "Ac228-holders" : {
+                                    "isotope" : "Ac228"
+                                }
+                            }
+                        },
+                        {
                             "part": "minishroud/ms_all",
                             "components" : {
                                 "K40-close" : {
@@ -262,6 +283,14 @@
                                 },
                                 "Pb214Bi214-cables" : {
                                     "isotope" : { "Bi214" : 1, "Pb214" : 1 }
+                                }
+                            }
+                        },
+                        {
+                            "part": "ge_holders/ge_holders_all",
+                            "components" : {
+                                "Ac228-holders" : {
+                                    "isotope" : "Ac228"
                                 }
                             }
                         },
