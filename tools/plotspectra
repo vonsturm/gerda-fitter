@@ -130,18 +130,15 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
             model = dynamic_cast<TH1*>(d->Get("total_model"));
             auto range_low = dynamic_cast<TParameter<double>*>(d->Get("fit_range_lower"));
             auto range_upp = dynamic_cast<TParameter<double>*>(d->Get("fit_range_upper"));
-            auto resgraph = dynamic_cast<TH1D*>(data->Clone());
 
             data->SetFillStyle(3003);
             data->SetLineColorAlpha(kAzure-4, 1);
             data->SetFillColorAlpha(kAzure-4, 1);
             model->SetLineColor(kRed);
             model->SetLineWidth(2);
-            resgraph->SetMarkerStyle(7);
 
             data->Rebin(rebin);
             model->Rebin(rebin);
-            resgraph->Rebin(rebin);
 
             if (!canvas) {
                 canvas = new TCanvas(Form("c_%i", idx), Form("c_%i", idx), width, height);
@@ -159,6 +156,9 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
             canvas->SetMargin(0.04, 0.01, 0.07, 0.07);
 
             if (bands) {
+                auto resgraph = dynamic_cast<TH1D*>(data->Clone());
+                resgraph->SetMarkerStyle(7);
+
                 if (residuals) resgraph->Divide(model);
                 if (range_low and range_upp) resgraph->GetXaxis()->SetRangeUser(range_low->GetVal(), range_upp->GetVal());
                 resgraph->Draw("P0 HIST");
@@ -177,6 +177,7 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
 
                     if (model->GetBinContent(b) == 0) resgraph->SetBinContent(b, 1);
                 }
+                if (residuals) resgraph->SetYTitle("data/model");
                 resgraph->Draw("P0 SAME HIST");
                 if (logy) gPad->SetLogy();
 
