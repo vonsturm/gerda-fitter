@@ -181,7 +181,7 @@ Last but not least, observables that depend on the model parameters only can be
 defined via JSON file with the following syntax:
 ```js
 "parameters" : {
-    "alpha-slope-bege" : {  // unique internal name
+    "2nbb-half-life-bege" : {  // unique internal name
         "TFormula": "1.13380E26/[2nbb-bege]", // ROOT's TFormula
         "range" : [2E-5, 1E-4],
         "long-name" : "T_{1/2}^{2#nu} - BEGe",
