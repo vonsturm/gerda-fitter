@@ -31,7 +31,7 @@
         },
         "half-life-enriched": {
             "TFormula": "2.49028E26/([2nbb-bege]+[2nbb-invcoax]+[2nbb-semicoax])",
-            "range" : [1.6E21, 2.0E21],
+            "range" : [1.8E21, 2.1E21],
             "long-name" : "T_{1/2}^{2#nu} - enriched",
             "units" : "yr"
         }
@@ -100,9 +100,9 @@
             }
         },
         "theoretical-expectations" : {
-            "../data/gerda-data-bkgmodel-phaseIIplus-v06.12.root" : {
+            "../../data/gerda-data-bkgmodel-phaseIIplus-v06.12.root" : {
                 "raw/M1_invCoax" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [[565, 2014], [2064, 2700]],
                     "rebin-factor" : 5,
                     "components" : [
@@ -179,7 +179,7 @@
                     ]
                 },
                 "raw/M1_enrBEGe" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [[565, 2014], [2064, 2700]],
                     "rebin-factor" : 5,
                     "components" : [
@@ -240,7 +240,7 @@
                     ]
                 },
                 "raw/M1_enrCoax" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [[565, 2014], [2064, 2700]],
                     "rebin-factor" : 5,
                     "components" : [
@@ -301,7 +301,7 @@
                     ]
                 },
                 "raw/M2_enrE1plusE2" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [520, 2500],
                     "rebin-factor" : 10,
                     "components" : [

@@ -201,43 +201,49 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
 
     if (config.contains("observables")) {
         for (auto& el : config["observables"].items()) {
+            // sanity checks
             auto _expr = el.value()["TFormula"].get<std::string>();
             TFormula _tformula(el.key().c_str(), _expr.c_str());
             if (!_tformula.IsValid() or _tformula.GetNpar() < 1 or _tformula.GetNdim() > 0) {
                 throw std::runtime_error("invalid observables TFormula given");
             }
+            // loop over number of parameters in formula
             for (int p = 0; p < _tformula.GetNpar(); ++p) {
                 std::string parname = _tformula.GetParName(p);
-                // throw exception if component name is not in list
                 bool exists = false;
+                // look for BAT internal parameter index
                 for (unsigned int idx = 0; idx < this->GetNParameters(); ++idx) {
                     if (this->GetParameters().At(idx).GetName() == parname) {
                         exists = true;
-                        // we do this here to keep BAT internal parameter index in memory
+                        // we do this here because we'd rather save BAT's internal parameter index
+                        // to access it later in GerdaFitter::CalculateObservables
                         _tformula.SetParName(p, std::to_string(idx).c_str());
                         break;
                     }
                 }
+                // throw exception if parameter is undefined
                 if (!exists) throw std::runtime_error(
                     "fit parameter '" + parname + "' not found, is it defined in \"parameters\"?"
                 );
-
-                BCLog::OutDetail("adding observable '" + el.key() + "' (\""
-                    + el.value().value("long-name", "") + "\" [" + el.value().value("units", "")
-                    + "]) with TFormula = \"" + _expr + "\" in range = ["
-                    + std::to_string(el.value()["range"][0].get<double>()) + ","
-                    + std::to_string(el.value()["range"][1].get<double>()) + "]");
-
-                this->AddObservable(
-                    el.key(),
-                    el.value()["range"][0].get<double>(),
-                    el.value()["range"][1].get<double>(),
-                    el.value().value("long-name", ""),
-                    "(" + el.value().value("units", "") + ")"
-                );
-
-                obs_tformulas.emplace(el.key(), _tformula);
             }
+
+            BCLog::OutDetail("adding observable '" + el.key() + "' (\""
+                + el.value().value("long-name", "") + "\" [" + el.value().value("units", "")
+                + "]) with TFormula = \"" + _expr + "\" in range = ["
+                + std::to_string(el.value()["range"][0].get<double>()) + ","
+                + std::to_string(el.value()["range"][1].get<double>()) + "]");
+
+            // register observable in BAT
+            this->AddObservable(
+                el.key(),
+                el.value()["range"][0].get<double>(),
+                el.value()["range"][1].get<double>(),
+                el.value().value("long-name", ""),
+                "(" + el.value().value("units", "") + ")"
+            );
+
+            // save TFormula for later use in GerdaFitter::CalculateObservables
+            obs_tformulas.emplace(el.key(), _tformula);
         }
     }
 
@@ -491,12 +497,16 @@ double GerdaFitter::LogLikelihood(const std::vector<double>& parameters) {
 }
 
 void GerdaFitter::CalculateObservables(const std::vector<double>& parameters) {
+    // loop over registered observables
     for (unsigned int i = 0; i < this->GetNObservables(); ++i) {
+        // get definition
         auto _tf = obs_tformulas[this->GetObservable(i).GetName()];
+        // set TFormula parameters value from current chain state
         for (int p = 0; p < _tf.GetNpar(); ++p) {
             // we saved the BAT internal parameter index in the TFormula parameter name
             _tf.SetParameter(p, parameters[std::stoi(_tf.GetParName(p))]);
         }
+        // evaluate the observable expression
         this->GetObservable(i) = _tf.Eval(0);
     }
 }

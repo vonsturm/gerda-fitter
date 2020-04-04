@@ -31,7 +31,7 @@
         },
         "half-life-enriched": {
             "TFormula": "2.49028E26/([2nbb-bege]+[2nbb-invcoax]+[2nbb-semicoax])",
-            "range" : [1.6E21, 2.0E21],
+            "range" : [1.8E21, 2.1E21],
             "long-name" : "T_{1/2}^{2#nu} - enriched",
             "units" : "yr"
         }
