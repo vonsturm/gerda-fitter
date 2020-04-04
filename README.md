@@ -35,7 +35,7 @@ settings about the global mode search algorithm:
         "method" : "kOptMinuit" // see the BAT manual to learn about the other algorithms
     },
 ```
-settings about the numerical integration needed to normalize the posterior:
+settings about the numerical integration needed to compute the evidence:
 ```js
     "integration" : {
         "enabled" : false,               // enable/disable the integration step
@@ -68,7 +68,7 @@ and finally the fit configuration section `"fit"`, where everything about the da
 the fit components is specified in a modular fashion:
 ```js
     // ...
-    "fit" : {  
+    "fit" : {
         "parameters" : { /* ... */ },  // define fit parameters globally
         "theoretical-expectations" : { /* ... */ }  // import PDFs and associated parameters
     }
@@ -76,7 +76,7 @@ the fit components is specified in a modular fashion:
 ```
 Let's start with the `"parameters"` section, here the fit parameters must be defined:
 ```js
-"parameters" : { 
+"parameters" : {
     "alpha-slope-bege" : {  // unique internal name
         "range" : [2E-5, 1E-4],
         "long-name" : "#alpha-model BEGe - slope",
@@ -177,6 +177,20 @@ or even a ROOT `TFormula` in the form `"formula:par1,par2,..."`:
     }
 },
 ```
+Last but not least, observables that depend on the model parameters only can be
+defined via JSON file with the following syntax:
+```js
+"parameters" : {
+    "alpha-slope-bege" : {  // unique internal name
+        "TFormula": "1.13380E26/[2nbb-bege]", // ROOT's TFormula
+        "range" : [2E-5, 1E-4],
+        "long-name" : "T_{1/2}^{2#nu} - BEGe",
+        "units" : "cts",
+    },
+    // ...
+```
+Model parameters must be specified as they were a `TFormula` parameter,
+enclosing their name in square brackets.
 
 ### Related projects
 

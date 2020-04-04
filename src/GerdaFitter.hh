@@ -15,6 +15,7 @@
 
 // ROOT
 #include "TH1.h"
+#include "TFormula.h"
 
 // BAT
 #include "BAT/BCModel.h"
@@ -84,6 +85,7 @@ class GerdaFitter : public BCModel {
 
     // methods from BCModel to be overloaded
     double LogLikelihood(const std::vector<double>& parameters);
+    void CalculateObservables(const std::vector<double> & parameters);
 
     void SetIntegrationProperties(json config);
     void PrintOptimizationSummary();
@@ -95,6 +97,8 @@ class GerdaFitter : public BCModel {
     json config;
 
     private:
+
+    std::map<std::string,TFormula> obs_tformulas;
 
     std::string SafeROOTName(const std::string original);
     void DumpData();

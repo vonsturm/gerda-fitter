@@ -58,7 +58,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                     el.value()["range"][0].get<double>(),
                     el.value()["range"][1].get<double>(),
                     el.value().value("long-name", ""),
-                    el.value().value("units", "")
+                    "(" + el.value().value("units", "") + ")"
                 );
                 BCLog::OutDetail("adding model parameter '" + el.key() + "' (\""
                     + el.value().value("long-name", "") + "\" [" + el.value().value("units", "")
@@ -75,7 +75,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                     el.value()["fixed"].get<double>()-1,
                     el.value()["fixed"].get<double>()+1,
                     el.value().value("long-name", ""),
-                    el.value().value("units", "")
+                    "(" + el.value().value("units", "") + ")"
                 );
                 BCLog::OutDetail("fixing parameter " + el.key() + " to "
                         + std::to_string(el.value()["fixed"].get<double>()));
@@ -129,7 +129,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                         el.value()["range"][1].get<double>()
                     );
 
-                    if (!_tformula->IsValid()) throw std::runtime_error("invalid TFormula given");
+                    if (!_tformula->IsValid()) throw std::runtime_error("invalid prior TFormula given");
 
                     // eventually set parameters, if any
                     while (!parlist.empty()) {
@@ -192,6 +192,52 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
         else {
             this->GetParameters().Back().SetPriorConstant();
             BCLog::OutDetail("assigned uniform prior to parameter '" + el.key() + "'");
+        }
+    }
+
+    /*
+     * define observables
+     */
+
+    if (config.contains("observables")) {
+        for (auto& el : config["observables"].items()) {
+            auto _expr = el.value()["TFormula"].get<std::string>();
+            TFormula _tformula(el.key().c_str(), _expr.c_str());
+            if (!_tformula.IsValid() or _tformula.GetNpar() < 1 or _tformula.GetNdim() > 0) {
+                throw std::runtime_error("invalid observables TFormula given");
+            }
+            for (int p = 0; p < _tformula.GetNpar(); ++p) {
+                std::string parname = _tformula.GetParName(p);
+                // throw exception if component name is not in list
+                bool exists = false;
+                for (unsigned int idx = 0; idx < this->GetNParameters(); ++idx) {
+                    if (this->GetParameters().At(idx).GetName() == parname) {
+                        exists = true;
+                        // we do this here to keep BAT internal parameter index in memory
+                        _tformula.SetParName(p, std::to_string(idx).c_str());
+                        break;
+                    }
+                }
+                if (!exists) throw std::runtime_error(
+                    "fit parameter '" + parname + "' not found, is it defined in \"parameters\"?"
+                );
+
+                BCLog::OutDetail("adding observable '" + el.key() + "' (\""
+                    + el.value().value("long-name", "") + "\" [" + el.value().value("units", "")
+                    + "]) with TFormula = \"" + _expr + "\" in range = ["
+                    + std::to_string(el.value()["range"][0].get<double>()) + ","
+                    + std::to_string(el.value()["range"][1].get<double>()) + "]");
+
+                this->AddObservable(
+                    el.key(),
+                    el.value()["range"][0].get<double>(),
+                    el.value()["range"][1].get<double>(),
+                    el.value().value("long-name", ""),
+                    "(" + el.value().value("units", "") + ")"
+                );
+
+                obs_tformulas.emplace(el.key(), _tformula);
+            }
         }
     }
 
@@ -442,6 +488,17 @@ double GerdaFitter::LogLikelihood(const std::vector<double>& parameters) {
         }
     }
     return logprob;
+}
+
+void GerdaFitter::CalculateObservables(const std::vector<double>& parameters) {
+    for (unsigned int i = 0; i < this->GetNObservables(); ++i) {
+        auto _tf = obs_tformulas[this->GetObservable(i).GetName()];
+        for (int p = 0; p < _tf.GetNpar(); ++p) {
+            // we saved the BAT internal parameter index in the TFormula parameter name
+            _tf.SetParameter(p, parameters[std::stoi(_tf.GetParName(p))]);
+        }
+        this->GetObservable(i) = _tf.Eval(0);
+    }
 }
 
 TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, TH1* dataformat) {
