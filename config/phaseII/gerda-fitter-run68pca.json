@@ -2,7 +2,7 @@
     "id" : "run68pca",
     "logging" : "summary",
     "precision" : "kMedium",
-    "output-dir" : "../results",
+    "output-dir" : "../../results/run68pca",
     "fit" : {
         "parameters" : {
             "Th228" : {

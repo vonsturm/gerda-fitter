@@ -2,7 +2,7 @@
     "id" : "phII-raw-global_enrBEGe",
     "logging" : "summary",
     "precision" : "kMedium",
-    "output-dir" : "../results",
+    "output-dir" : "../../results/phII-raw-global_enrBEGe",
     "global-mode-search" : {
         "method" : "kOptMinuit"
     },

@@ -1,8 +1,8 @@
 {
-    "id" : "phII-raw-global_light",
+    "id" : "phII-raw-global",
     "logging" : "summary",
-    "precision" : "kMedium",
-    "output-dir" : "../results/phII-raw-global_light",
+    "precision" : "kHigh",
+    "output-dir" : "../../results/phII-raw-global",
     "global-mode-search" : {
         "method" : "kOptMinuit"
     },
@@ -21,78 +21,103 @@
         }
     },
     "p-value" : {
-        "enabled" : true,
+        "enabled" : false,
         "iterations" : 1E07
     },
     "fit" : {
         "parameters" : {
+            "alpha-slope-bege" : {
+                "range" : [2E-5, 1E-4],
+                "long-name" : "#alpha-model BEGe - slope",
+                "units" : "cts"
+            },
+            "alpha-offset-bege" : {
+                "range" : [0, 1E-1],
+                "long-name" : "#alpha-model BEGe - offset",
+                "units" : "cts"
+            },
             "alpha-high-energy-bege" : {
-                "range" : [0.6, 1.2],
+                "range" : [0, 2],
                 "long-name" : "#alpha-model BEGe - high energy",
                 "units" : "cts"
             },
+            "alpha-slope-coax" : {
+                "range" : [2E-5, 1E-4],
+                "long-name" : "#alpha-model Coax - slope",
+                "units" : "cts"
+            },
+            "alpha-offset-coax" : {
+                "range" : [0, 1E-1],
+                "long-name" : "#alpha-model Coax - offset",
+                "units" : "cts"
+            },
             "alpha-high-energy-coax" : {
-                "range" : [0.9, 1.2],
+                "range" : [0.4, 1.4],
                 "long-name" : "#alpha-model Coax - high energy",
                 "units" : "cts"
             },
             "Bi212Tl208-cables" : {
-                "range" : [1E4, 1E5],
+                "range" : [0, 1E5],
                 "long-name" : "^{212}Bi + ^{208}Tl - cables",
                 "units" : "cts"
             },
             "Pb214Bi214-cables" : {
-                "range" : [3E4, 6E4],
+                "range" : [0, 2E5],
                 "long-name" : "^{214}Pb + ^{214}Bi - cables",
                 "units" : "cts"
             },
             "Co60-cables" : {
-                "range" : [1E1, 5E4],
+                "range" : [0, 2E4],
                 "long-name" : "^{60}Co - cables",
                 "units" : "cts"
             },
             "2nbb-bege" : {
-                "range" : [8E4, 9E4],
+                "range" : [7E4, 1E5],
                 "long-name" : "2#nu#beta#beta - enrBEGe",
                 "units" : "cts"
             },
             "2nbb-coax" : {
-                "range" : [6.8E4, 7.4E4],
+                "range" : [4E5, 5E5],
                 "long-name" : "2#nu#beta#beta - enrCoax",
                 "units" : "cts"
             },
             "Ac228-holders" : {
-                "range" : [1E1, 5E4],
+                "range" : [3E3, 1E5],
                 "long-name" : "^{228}Ac - holders",
                 "units" : "cts"
             },
             "K40-close" : {
-                "range" : [1E4, 2E6],
+                "range" : [5E4, 1E7],
                 "long-name" : "^{40}K - close",
                 "units" : "cts"
             },
             "K40-far" : {
-                "range" : [0, 1E7],
+                "range" : [1E3, 2E7],
                 "long-name" : "^{40}K - far",
                 "units" : "cts"
             },
+            "K40-cc3" : {
+                "range" : [0, 1E7],
+                "long-name" : "^{40}K - electronics",
+                "units" : "cts"
+            },
             "K42-outside-ms" : {
-                "range" : [1E6, 1E8],
+                "range" : [1E6, 3E8],
                 "long-name" : "^{42}K - hom. in LAr (outside MS)",
                 "units" : "cts"
             },
             "K42-above-array" : {
-                "range" : [3E7, 1E8],
+                "range" : [1E6, 1E8],
                 "long-name" : "^{42}K - hom. in LAr above array",
                 "units" : "cts"
             },
             "K42-nplus-bege" : {
-                "range" : [0, 1E4],
+                "range" : [0, 5E3],
                 "long-name" : "^{42}K - n^+ (BEGe)",
                 "units" : "cts"
             },
             "K42-nplus-coax" : {
-                "range" : [0, 1E5],
+                "range" : [1E6, 3E6],
                 "long-name" : "^{42}K - n^+ (Coax)",
                 "units" : "cts"
             }
@@ -100,15 +125,25 @@
         "theoretical-expectations" : {
             "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
                 "M1_enrBEGe" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.4",
-                    "fit-range" : [[560, 2014], [2064, 5300]],
-                    "rebin-factor" : 10,
+                    "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
+                    "fit-range" : [560, 5300],
+                    "rebin-factor" : 5,
                     "components" : [
+                        {
+                            "components" : {
+                                "alpha-slope-bege" : {
+                                    "TFormula" : "x*(x>0 && x<5160)"
+                                },
+                                "alpha-offset-bege" : {
+                                    "TFormula" : "1"
+                                }
+                            }
+                        },
                         {
                             "root-file" : "../data/bkg-alpha-enrBEGe-results.root",
                             "components" : {
                                 "alpha-high-energy-bege" : {
-                                    "hist-name" : "alpha_model/hMC_all_enrBEGe"
+                                    "hist-name" : "alpha_model/highenergy_all_enrBEGe"
                                 }
                             }
                         },
@@ -151,6 +186,14 @@
                             }
                         },
                         {
+                            "part": "electronics/cc3",
+                            "components" : {
+                                "K40-cc3" : {
+                                    "isotope" : "K40-raw"
+                                }
+                            }
+                        },
+                        {
                             "part": "lar/outside_ms",
                             "components" : {
                                 "K42-outside-ms" : {
@@ -185,15 +228,25 @@
                     ]
                 },
                 "M1_enrCoax" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.4",
-                    "fit-range" : [[560, 2014], [2064, 5300]],
-                    "rebin-factor" : 10,
+                    "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
+                    "fit-range" : [560, 5300],
+                    "rebin-factor" : 5,
                     "components" : [
+                        {
+                            "components" : {
+                                "alpha-slope-coax" : {
+                                    "TFormula" : "x*(x>0 && x<5160)"
+                                },
+                                "alpha-offset-coax" : {
+                                    "TFormula" : "1"
+                                }
+                            }
+                        },
                         {
                             "root-file" : "../data/bkg-alpha-enrCoax-results.root",
                             "components" : {
                                 "alpha-high-energy-coax" : {
-                                    "hist-name" : "alpha_model/hMC_all_enrCoax"
+                                    "hist-name" : "alpha_model/highenergy_all_enrCoax"
                                 }
                             }
                         },
@@ -236,6 +289,14 @@
                             }
                         },
                         {
+                            "part": "electronics/cc3",
+                            "components" : {
+                                "K40-cc3" : {
+                                    "isotope" : "K40-raw"
+                                }
+                            }
+                        },
+                        {
                             "part": "lar/outside_ms",
                             "components" : {
                                 "K42-outside-ms" : {
@@ -270,9 +331,9 @@
                     ]
                 },
                 "M2_enrE1plusE2" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.3",
-                    "fit-range" : [520, 2500],
-                    "rebin-factor" : 10,
+                    "gerda-pdfs" : "../data/gerda-pdfs/v2.1",
+                    "fit-range" : [520, 3500],
+                    "rebin-factor" : 5,
                     "components" : [
                         {
                             "part": "cables/cables_all",
@@ -305,9 +366,9 @@
                             }
                         },
                         {
-                            "part": "larveto/fibers",
+                            "part": "electronics/cc3",
                             "components" : {
-                                "K40-far" : {
+                                "K40-cc3" : {
                                     "isotope" : "K40-raw"
                                 }
                             }
@@ -325,6 +386,14 @@
                             "components" : {
                                 "K42-above-array" : {
                                     "isotope" : "K42-raw"
+                                }
+                            }
+                        },
+                        {
+                            "part": "larveto/fibers",
+                            "components" : {
+                                "K40-far" : {
+                                    "isotope" : "K40-raw"
                                 }
                             }
                         },

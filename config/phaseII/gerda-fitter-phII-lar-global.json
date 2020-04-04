@@ -2,7 +2,7 @@
     "id" : "phII-lar-global",
     "logging" : "summary",
     "precision" : "kMedium",
-    "output-dir" : "../results",
+    "output-dir" : "../../results/phII-lar-global",
     "global-mode-search" : {
         "method" : "kOptMinuit"
     },

@@ -2,7 +2,7 @@
     "id" : "phII-raw-global_lowenergy",
     "logging" : "summary",
     "precision" : "kMedium",
-    "output-dir" : "../results",
+    "output-dir" : "../../results/phII-raw-global_lowenergy",
     "global-mode-search" : {
         "method" : "kOptMinuit"
     },
