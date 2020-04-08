@@ -73,9 +73,9 @@
             }
         },
         "theoretical-expectations" : {
-            "../data/gerda-data-bkgmodel-phaseIIplus-v06.12.root" : {
+            "../../data/gerda-data-bkgmodel-phaseIIplus-v06.12.root" : {
                 "raw/M1_all_1461" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [0, 41],
                     "rebin-factor" : 1,
                     "components" : [
@@ -149,7 +149,7 @@
                     ]
                 },
                 "raw/M1_all_1525" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [0, 41],
                     "rebin-factor" : 1,
                     "components" : [
@@ -196,7 +196,7 @@
                     ]
                 },
                 "raw/M1_all_S1" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [0, 41],
                     "rebin-factor" : 1,
                     "components" : [
@@ -270,7 +270,7 @@
                     ]
                 },
                 "raw/M1_all_S2" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [0, 41],
                     "rebin-factor" : 1,
                     "components" : [
@@ -317,7 +317,7 @@
                     ]
                 },
                 "raw/M1_all_S3" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [0, 41],
                     "rebin-factor" : 1,
                     "components" : [
