@@ -15,6 +15,13 @@ Requirements
 
 Then just `PREFIX=/path/to/prefix make install`.
 
+Alternatively, a Singularity container can be used:
+```console
+$ sudo singularity build gerda-fitter.sif Singularity.def
+$ singularity exec gerda-fitter.sif gerda-fitter -h
+USAGE: gerda-fitter [-h|--help] json-config
+```
+
 ### Usage
 
 The `gerda-fitter` executable acceps a JSON config file as the only argument.

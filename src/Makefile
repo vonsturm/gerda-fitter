@@ -3,7 +3,7 @@
 # Author: Luigi Pertoldi - pertoldi@pd.infn.it
 # Created: Mon 6 May 2019
 
-FLAGS = -Wall -Wextra -pedantic -Wshadow -std=c++11 -g -O3\
+FLAGS = -Wall -Wextra -pedantic -Wshadow -std=c++11 -g -O3 \
         $$(bat-config --cflags)
 LIBS  = $$(bat-config --libs)
 
