@@ -88,7 +88,7 @@ bool col_defined = false;
  *
  * draws TBoxes corresponding to 68, 95 and 98 coverage intervals for poisson
  * (discrete) distribution with mean `poisson_mean`. The location and size of
- * the bon on the x-axis must be provided with the second and third arguments.
+ * the box on the x-axis must be provided with the second and third arguments.
  * The boolean argument `residuals` can be used to normalize boxes to the value
  * of the `poisson_mean`. The histogram onto which the bands will be drawn can
  * be provided as a last argument, and the boxes will be clipped to its frame

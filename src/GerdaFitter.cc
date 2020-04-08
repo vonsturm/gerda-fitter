@@ -500,11 +500,11 @@ void GerdaFitter::CalculateObservables(const std::vector<double>& parameters) {
     // loop over registered observables
     for (unsigned int i = 0; i < this->GetNObservables(); ++i) {
         // get definition
-        auto _tf = obs_tformulas[this->GetObservable(i).GetName()];
+        auto& _tf = obs_tformulas[this->GetObservable(i).GetName()];
         // set TFormula parameters value from current chain state
         for (int p = 0; p < _tf.GetNpar(); ++p) {
             // we saved the BAT internal parameter index in the TFormula parameter name
-            _tf.SetParameter(p, parameters[std::stoi(_tf.GetParName(p))]);
+            _tf.SetParameter(p, parameters[std::stoi(std::string(_tf.GetParName(p)))]);
         }
         // evaluate the observable expression
         this->GetObservable(i) = _tf.Eval(0);
