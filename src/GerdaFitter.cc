@@ -762,11 +762,46 @@ void GerdaFitter::SaveHistograms(std::string filename) {
         sum->Write("total_model");
 
         // write fit range
-        TParameter<double> range_low("fit_range_lower", it.data->GetBinLowEdge(it.brange[0].first));
-        TParameter<double> range_upp("fit_range_upper", it.data->GetBinLowEdge(it.brange.back().second)
+        if (it.data->GetDimension() == 1) {
+            TParameter<double> range_low("fit_range_lower", it.data->GetBinLowEdge(it.brange[0].first));
+            TParameter<double> range_upp("fit_range_upper", it.data->GetBinLowEdge(it.brange.back().second)
                 + it.data->GetBinWidth(it.brange.back().second));
-        range_low.Write();
-        range_upp.Write();
+            range_low.Write();
+            range_upp.Write();
+        }
+        // for TH2 write y-range
+        if (it.data->GetDimension() == 2) {
+            int binx_low, binx_up, biny, binz;
+            it.data->GetBinXYZ(it.brange[0].first, binx_low, biny, binz);
+            it.data->GetBinXYZ(it.brange.back().second, binx_up, biny, binz);
+            auto bw_x = it.data->GetXaxis()->GetBinWidth(1);
+            auto bw_y = it.data->GetYaxis()->GetBinWidth(1);
+
+            // full x-range
+            TParameter<double> range_low("fit_range_lower_x", it.data->GetXaxis()->GetBinLowEdge(binx_low));
+            TParameter<double> range_upp("fit_range_upper_x", it.data->GetXaxis()->GetBinLowEdge(binx_up) + bw_x);
+            range_low.Write();
+            range_upp.Write();
+
+            // all y-ranges for projection
+            int idx = 0;
+            int pre_biny = biny, cur_biny = biny;
+            for (auto r : it.brange) {
+                it.data->GetBinXYZ(r.first, binx_low, cur_biny, binz);
+                // detector new y-range and write it to file
+                if ((cur_biny - pre_biny) > 1) {
+                    TParameter<double> range_low_y(Form("fit_range_lower_y%i",idx),
+                        it.data->GetYaxis()->GetBinLowEdge(biny));
+                    TParameter<double> range_upp_y(Form("fit_range_upper_y%i",idx++),
+                        it.data->GetYaxis()->GetBinLowEdge(pre_biny) + bw_y);
+                    range_low_y.Write();
+                    range_upp_y.Write();
+                    biny = cur_biny;
+                }
+                pre_biny = cur_biny;
+            }
+        }
+
         tf.cd();
     }
 }
