@@ -499,7 +499,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                             _vyr.push_back({r[0],r[1]});
                         }
                     }
-                    else _vxr.push_back({y_range[0],y_range[1]});
+                    else _vyr.push_back({y_range[0],y_range[1]});
                 }
                 // last sanity check of ranges
                 if (_vxr.empty() or _vyr.empty())
