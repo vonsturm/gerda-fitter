@@ -14,6 +14,7 @@
 #include "BAT/BCTH1Prior.h"
 
 // ROOT
+#include "TH2.h"
 #include "TF1.h"
 #include "TFile.h"
 #include "TString.h"
@@ -259,8 +260,21 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
 
         // loop over requested histograms in file
         for (auto& elh : el.value().items()) {
+            // get rebin factor before reading all histograms
+            auto rebin_x = elh.value().value("rebin-factor",   1);
+            auto rebin_y = elh.value().value("rebin-factor-y", 1);
+            if (rebin_x != 1)
+                BCLog::OutDetail("using rebin X factor = " + std::to_string(rebin_x) + " for dataset '" + elh.key() + "'");
+            if (rebin_y != 1)
+                BCLog::OutDetail("using rebin Y factor = " + std::to_string(rebin_y) + " for dataset '" + elh.key() + "'");
+
             BCLog::OutDebug("getting data histogram '" + elh.key() + "' from " + el.key());
             auto th = dynamic_cast<TH1*>(_tf.Get(elh.key().c_str()));
+            // rebin if requested
+            th->Rebin(rebin_x);
+            if ((rebin_y != 1) and (_tf.Get(elh.key().c_str())->InheritsFrom(TH2::Class()))) {
+                dynamic_cast<TH2*>(_tf.Get(elh.key().c_str()))->RebinY(rebin_y);
+            }
             if (!th) throw std::runtime_error("could not find object '" + elh.key() + "' in file " + el.key());
             th->SetDirectory(nullptr);
             auto basename = el.key().substr(
@@ -271,10 +285,6 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
 
             dataset _current_ds;
             _current_ds.data = th;
-
-            // get rebin factor
-            auto rebin = elh.value().value("rebin-factor", 1);
-            BCLog::OutDetail("using rebin factor = " + std::to_string(rebin) + " for dataset '" + elh.key() + "'");
 
             // eventually get a global value for the gerda-pdfs path
             auto gerda_pdfs_path = elh.value().value("gerda-pdfs", ".");
@@ -306,7 +316,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                             BCLog::OutDebug("summing object '" + elh.key() + " with weight "
                                     + std::to_string(p.value().get<double>()));
                             // get histogram
-                            auto thh = this->GetFitComponent(filename, elh.key(), _current_ds.data);
+                            auto thh = this->GetFitComponent(filename, elh.key(), _current_ds.data, rebin_x, rebin_y);
                             // add it with weight
                             if (!sum) {
                                 sum = thh;
@@ -328,7 +338,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                             + volume + "-" + part + "-" + i + ".root";
                         BCLog::OutDebug("getting object '" + elh.key() + "' in file " + filename);
                         // get histogram
-                        auto thh = this->GetFitComponent(filename, elh.key(), _current_ds.data);
+                        auto thh = this->GetFitComponent(filename, elh.key(), _current_ds.data, rebin_x, rebin_y);
                         return thh;
                     }
                     else throw std::runtime_error("unexpected 'part' value found in [\"fit\"][\""
@@ -357,7 +367,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                     // it's a user defined file
                     if (it.contains("root-file")) {
                         auto obj_name = iso.value().value("hist-name", elh.key());
-                        auto thh = this->GetFitComponent(it["root-file"].get<std::string>(), obj_name, _current_ds.data);
+                        auto thh = this->GetFitComponent(it["root-file"].get<std::string>(), obj_name, _current_ds.data, rebin_x, rebin_y);
                         _current_ds.comp.insert({comp_idx, thh});
 
                     }
@@ -412,57 +422,119 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                             throw std::runtime_error("invalid pointer found in component list at position " + std::to_string(comp_idx));
                         }
                     }
-
-                    // eventually rebin
-                    _current_ds.comp[comp_idx]->Rebin(rebin);
                 }
             }
 
-            // eventually rebin data
-            _current_ds.data->Rebin(rebin);
+            // set fit ranges
+            // read x-range from config file
+            std::vector<std::pair<double,double>> _vxr;
+            if (!elh.value().contains("fit-range-x")) {
+                _vxr.push_back({
+                    _current_ds.data->GetXaxis()->GetBinCenter(1),
+                    _current_ds.data->GetXaxis()->GetBinCenter(_current_ds.data->GetNbinsX())
+                });
+            }
+            else { // sanity check x-range
+                auto & x_range = elh.value()["fit-range-x"];
+                if (!x_range.is_array())
+                    throw std::runtime_error("wrong \"fit-range-x\" format, array expected");
+                if (!(x_range[0].is_array() or x_range[0].is_number())) 
+                    throw std::runtime_error("wrong \"fit-range-x\" format, array of arrays or numbers expected");
 
-            // set fit range
-            if (elh.value().contains("fit-range")) {
-                if (elh.value()["fit-range"].is_array()) {
-                    if (elh.value()["fit-range"][0].is_array()) {
-                        BCLog::OutDebug("\"fit-range\" is an array of arrays");
-                        for (auto& r : elh.value()["fit-range"]) {
-                            if (!r.is_array()) throw std::runtime_error("non-array member detected in \"fit-range\"");
-                            if (!r[0].is_number() or !r[1].is_number()) {
-                                throw std::runtime_error("not-a-number value detected in \"fit-range\"");
-                            }
-                            _current_ds.brange.push_back({_current_ds.data->FindBin(r[0]), _current_ds.data->FindBin(r[1])});
-                            BCLog::OutDetail("Adding fit range [" +
-                                std::to_string(_current_ds.brange.back().first) + ", " +
-                                std::to_string(_current_ds.brange.back().second) + "] (bins)"
-                            );
+                if (x_range[0].is_array()) {
+                    BCLog::OutDebug("\"fit-range-x\" is an array of arrays");
+                    for (auto& r : x_range) {
+                        if (!r.is_array()) throw std::runtime_error("non-array member detected in \"fit-range-x\"");
+                        if (r.size() != 2) throw std::runtime_error("wrong number of entries in item of \"fit-range-x\"");
+                        if (!r[0].is_number() or !r[1].is_number()) {
+                            throw std::runtime_error("not-a-number value detected in \"fit-range-x\"");
                         }
+                        _vxr.push_back({r[0],r[1]});
                     }
-                    if (elh.value()["fit-range"][0].is_number()) {
-                        BCLog::OutDebug("\"fit-range\" is an array of numbers");
+                }
+                else _vxr.push_back({x_range[0], x_range[1]}); 
+            }
+
+            // set fit range 1D
+            if (_current_ds.data->GetDimension() == 1) {
+                if (_vxr.empty()) throw std::runtime_error("Something went wrong with the TH1 x-range");
+                else {
+                    for (auto x : _vxr) {
                         _current_ds.brange.push_back({
-                            _current_ds.data->FindBin(elh.value()["fit-range"][0]),
-                            _current_ds.data->FindBin(elh.value()["fit-range"][1])
+                            _current_ds.data->FindBin(x.first),
+                            _current_ds.data->FindBin(x.second)
                         });
-                        BCLog::OutDetail("Setting fit range to [" +
+                        BCLog::OutDetail("Adding fit range x [" +
                             std::to_string(_current_ds.brange.back().first) + ", " +
                             std::to_string(_current_ds.brange.back().second) + "] (bins)"
                         );
                     }
                 }
-                else throw std::runtime_error("wrong \"fit-range\" format, array expected");
             }
-            else {
-                _current_ds.brange.push_back({1, _current_ds.data->GetNbinsX()});
+            // set fit range 2D
+            else if (_current_ds.data->GetDimension() == 2) {
+                // read y-range from config file
+                std::vector<std::pair<double,double>> _vyr;
+                if (!elh.value().contains("fit-range-y")) {
+                    _vyr.push_back({
+                        _current_ds.data->GetYaxis()->GetBinCenter(1),
+                        _current_ds.data->GetYaxis()->GetBinCenter(_current_ds.data->GetNbinsY())
+                    });
+                }
+                else { // sanity check y-range
+                    auto & y_range = elh.value()["fit-range-y"];
+                    if (!y_range.is_array())
+                        throw std::runtime_error("wrong \"fit-range-y\" format, array expected");
+                    if (!(y_range[0].is_array() or y_range[0].is_number())) 
+                        throw std::runtime_error("wrong \"fit-range-y\" format, array of arrays or numbers expected");
+
+                    if (y_range[0].is_array()) {
+                        BCLog::OutDebug("\"fit-range-y\" is an array of arrays");
+                        for (auto& r : y_range) {
+                            if (!r.is_array()) throw std::runtime_error("non-array member detected in \"fit-range-y\"");
+                            if (r.size() != 2) throw std::runtime_error("wrong number of entries in item of \"fit-range-y\"");
+                            if (!r[0].is_number() or !r[1].is_number()) {
+                                throw std::runtime_error("not-a-number value detected in \"fit-range-y\"");
+                            }
+                            _vyr.push_back({r[0],r[1]});
+                        }
+                    }
+                    else _vxr.push_back({y_range[0],y_range[1]});
+                }
+                // last sanity check of ranges
+                if (_vxr.empty() or _vyr.empty())
+                    throw std::runtime_error("Something went wrong with the TH2 ranges");
+                else {
+                    // translate ranges in global bin ranges
+                    auto yBinWidth = _current_ds.data->GetYaxis()->GetBinWidth(1);
+                    for (auto x : _vxr) {
+                        for (auto y : _vyr) {
+                            auto yPos = y.first;
+                            auto yMax = y.second;
+                            while (yPos <= yMax) {
+                                _current_ds.brange.push_back({
+                                    _current_ds.data->FindBin(x.first,yPos),
+                                    _current_ds.data->FindBin(x.second,yPos)
+                                });
+                                yPos += yBinWidth;
+                                BCLog::OutDetail("Adding fit range TH2 global [" +
+                                    std::to_string(_current_ds.brange.back().first) + ", " +
+                                    std::to_string(_current_ds.brange.back().second) + "] (bins)"
+                                );
+                            }
+                        }
+                    }
+                }
             }
+            else throw std::runtime_error("cannot set data ranges : TH3D is not supported yet");
 
             // now sanity checks on the range
             double _last = - std::numeric_limits<double>::infinity();
             for (auto& r : _current_ds.brange) {
                 if (r.first > _last) _last = r.first;
-                else throw std::runtime_error("illegal ranges in \"fit-range\" detected, did you specify them in ascending order?");
+                else throw std::runtime_error("illegal ranges in \"fit-range-x\" detected, did you specify them in ascending order?");
                 if (r.second > _last) _last = r.second;
-                else throw std::runtime_error("illegal ranges in \"fit-range\" detected, did you specify them in ascending order?");
+                else throw std::runtime_error("illegal ranges in \"fit-range-x\" detected, did you specify them in ascending order?");
             }
 
             data.push_back(_current_ds);
@@ -485,7 +557,8 @@ double GerdaFitter::LogLikelihood(const std::vector<double>& parameters) {
     // loop over datasets
     for (auto& it : data) {
         for (auto& r : it.brange) {
-            for (int b = r.first; b < r.second; ++b) {
+            // ranges are inclusive
+            for (int b = r.first; b <= r.second; ++b) {
                 // compute theoretical prediction for bin 'b'
                 double pred = 0;
                 for (auto& h : it.comp) pred += parameters[h.first]*h.second->GetBinContent(b);
@@ -511,7 +584,7 @@ void GerdaFitter::CalculateObservables(const std::vector<double>& parameters) {
     }
 }
 
-TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, TH1* dataformat) {
+TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, TH1* dataformat, int rebin_x, int rebin_y) {
     TFile _tf(filename.c_str());
     if (!_tf.IsOpen()) throw std::runtime_error("invalid ROOT file: " + filename);
     auto obj = _tf.Get(objectname.c_str());
@@ -519,30 +592,41 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
     // please do not delete it when the TFile goes out of scope
     if (obj->InheritsFrom(TH1::Class())) {
         auto _th = dynamic_cast<TH1*>(obj);
-        if (_th->GetDimension() > 1) throw std::runtime_error("TH2/TH3 are not supported yet");
-        if (_th->GetNbinsX() != dataformat->GetNbinsX() or
+        _th->Rebin(rebin_x);
+        if ((rebin_y != 1) and (obj->InheritsFrom(TH2::Class()))) {
+            dynamic_cast<TH2*>(obj)->RebinY(rebin_y);
+        }
+        if (_th->GetDimension() > 2) throw std::runtime_error("TH3 are not supported yet");
+        if (_th->GetNcells() != dataformat->GetNcells() or // ncells : nbins + over- and underflow
             _th->GetDimension() != dataformat->GetDimension() or
             _th->GetXaxis()->GetXmin() != dataformat->GetXaxis()->GetXmin() or
             _th->GetXaxis()->GetXmax() != dataformat->GetXaxis()->GetXmax()) {
             throw std::runtime_error("histogram '" + objectname + "' in file " + filename
                 + " and corresponding data histogram do not have the same number of bins and/or same ranges");
         }
-        _th->SetDirectory(nullptr);
-        TParameter<Long64_t>* _nprim = nullptr;
-        auto _name_nodir = objectname.substr(objectname.find_last_of('/')+1, std::string::npos);
-        if (_name_nodir.substr(0, 3) == "M1_") {
-            _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesEdep"));
-        }
-        else if (_name_nodir.substr(0, 3) == "M2_") {
-            _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesCoin"));
-        }
-        if (!_nprim) {
-            BCLog::OutWarning("could not find suitable 'NumberOrPrimaries' object in '"
-                + filename + "', skipping normalization");
-        }
-        else _th->Scale(1./_nprim->GetVal());
+        else if (_th->GetDimension() == 2) {
+            if (_th->GetYaxis()->GetXmin() != dataformat->GetYaxis()->GetXmin() or
+                _th->GetYaxis()->GetXmax() != dataformat->GetYaxis()->GetXmax()) {
+                throw std::runtime_error("histogram '" + objectname + "' in file " + filename
+                + " and corresponding data histogram do not have the same y-ranges");
+            }
+            _th->SetDirectory(nullptr);
+            TParameter<Long64_t>* _nprim = nullptr;
+            auto _name_nodir = objectname.substr(objectname.find_last_of('/')+1, std::string::npos);
+            if (_name_nodir.substr(0, 3) == "M1_") {
+                _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesEdep"));
+            }
+            else if (_name_nodir.substr(0, 3) == "M2_") {
+                _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesCoin"));
+            }
+            if (!_nprim) {
+                BCLog::OutWarning("could not find suitable 'NumberOrPrimaries' object in '"
+                    + filename + "', skipping normalization");
+            }
+            else _th->Scale(1./_nprim->GetVal());
 
-        return _th;
+            return _th;
+        }
     }
     else if (obj->InheritsFrom(TF1::Class())) {
         auto _th = new TH1D(obj->GetName(), obj->GetTitle(), dataformat->GetNbinsX(),
@@ -556,6 +640,8 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
     else {
         throw std::runtime_error("object '" + objectname + "' in file " + filename + " isn't of type TH1 or TF1");
     }
+    
+    return nullptr;
 }
 
 void GerdaFitter::SetIntegrationProperties(json j) {
@@ -618,6 +704,7 @@ void GerdaFitter::SetIntegrationProperties(json j) {
                         if (jjj["nbatch"]   .is_number()) o.nbatch    = jjj["nbatch"]   .get<int>();
                         if (jjj["gridno"]   .is_number()) o.gridno    = jjj["gridno"]   .get<int>();
                         this->SetCubaOptions(o);
+                        break;
                     }
                     case BCIntegrate::BCCubaMethod::kCubaSuave : {
                         auto o = this->GetCubaSuaveOptions();
@@ -626,6 +713,7 @@ void GerdaFitter::SetIntegrationProperties(json j) {
                         if (jjj["nnew"]    .is_number()) o.nnew     = jjj["nnev"]    .get<int>();
                         if (jjj["flatness"].is_number()) o.flatness = jjj["flatness"].get<double>();
                         this->SetCubaOptions(o);
+                        break;
                     }
                     case BCIntegrate::BCCubaMethod::kCubaDivonne : {
                         auto o = this->GetCubaDivonneOptions();
@@ -638,12 +726,14 @@ void GerdaFitter::SetIntegrationProperties(json j) {
                         if (jjj["maxchisq"]    .is_number()) o.maxchisq     = jjj["maxchisq"]    .get<double>();
                         if (jjj["mindeviation"].is_number()) o.mindeviation = jjj["mindeviation"].get<double>();
                         this->SetCubaOptions(o);
+                        break;
                     }
                     case BCIntegrate::BCCubaMethod::kCubaCuhre : {
                         auto o = this->GetCubaCuhreOptions();
                         set_base_props(o);
                         if (jjj["key"].is_number()) o.key = jjj["key"].get<int>();
                         this->SetCubaOptions(o);
+                        break;
                     }
                     case BCIntegrate::BCCubaMethod::kCubaDefault : break;
                     case BCIntegrate::BCCubaMethod::NCubaMethods : break;

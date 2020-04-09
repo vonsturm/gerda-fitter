@@ -102,7 +102,7 @@ class GerdaFitter : public BCModel {
 
     std::string SafeROOTName(const std::string original);
     void DumpData();
-    TH1* GetFitComponent(std::string filename, std::string objectname, TH1* data);
+    TH1* GetFitComponent(std::string filename, std::string objectname, TH1* data, int rebin_x = 1, int rebin_y = 1);
 };
 
 #endif
