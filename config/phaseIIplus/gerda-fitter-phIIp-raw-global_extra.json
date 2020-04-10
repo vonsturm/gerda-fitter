@@ -155,9 +155,9 @@
             }
         },
         "theoretical-expectations" : {
-            "../data/gerda-data-bkgmodel-phaseIIplus-v06.12.root" : {
+            "../../data/gerda-data-bkgmodel-phaseIIplus-v06.12.root" : {
                 "raw/M1_invCoax" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [[565, 2014], [2064, 2700]],
                     "rebin-factor" : 5,
                     "components" : [
@@ -242,6 +242,22 @@
                             }
                         },
                         {
+                            "part": "gedet/nplus_semicoax",
+                            "components": {
+                                "K42-nplus-semicoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_bege",
+                            "components": {
+                                "K42-nplus-bege" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
                             "part": "gedet/pplus_invcoax",
                             "components": {
                                 "Pb214Bi214-pplus-invcoax" : {
@@ -252,7 +268,7 @@
                     ]
                 },
                 "raw/M1_enrBEGe" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [[565, 2014], [2064, 2700]],
                     "rebin-factor" : 5,
                     "components" : [
@@ -329,6 +345,22 @@
                             }
                         },
                         {
+                            "part": "gedet/nplus_invcoax",
+                            "components": {
+                                "K42-nplus-invcoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_semicoax",
+                            "components": {
+                                "K42-nplus-semicoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
                             "part": "gedet/pplus_bege",
                             "components": {
                                 "Pb214Bi214-pplus-bege" : {
@@ -339,7 +371,7 @@
                     ]
                 },
                 "raw/M1_enrCoax" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [[565, 2014], [2064, 2700]],
                     "rebin-factor" : 5,
                     "components" : [
@@ -416,6 +448,22 @@
                             }
                         },
                         {
+                            "part": "gedet/nplus_bege",
+                            "components": {
+                                "K42-nplus-bege" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_invcoax",
+                            "components": {
+                                "K42-nplus-invcoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
                             "part": "gedet/pplus_semicoax",
                             "components": {
                                 "Pb214Bi214-pplus-semicoax" : {
@@ -426,7 +474,7 @@
                     ]
                 },
                 "raw/M2_enrE1plusE2" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
                     "fit-range" : [520, 2500],
                     "rebin-factor" : 10,
                     "components" : [
@@ -457,6 +505,30 @@
                             "components" : {
                                 "K40-central-fiber-shroud" : {
                                     "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_semicoax",
+                            "components": {
+                                "K42-nplus-semicoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_bege",
+                            "components": {
+                                "K42-nplus-bege" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_invcoax",
+                            "components": {
+                                "K42-nplus-invcoax" : {
+                                    "isotope" : "K42"
                                 }
                             }
                         },
