@@ -261,7 +261,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
         // loop over requested histograms in file
         for (auto& elh : el.value().items()) {
             // get rebin factor before reading all histograms
-            auto rebin_x = elh.value().value("rebin-factor",   1);
+            auto rebin_x = elh.value().value("rebin-factor-x", 1) * elh.value().value("rebin-factor", 1);
             auto rebin_y = elh.value().value("rebin-factor-y", 1);
             if (rebin_x != 1)
                 BCLog::OutDetail("using rebin X factor = " + std::to_string(rebin_x) + " for dataset '" + elh.key() + "'");
@@ -428,14 +428,15 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
             // set fit ranges
             // read x-range from config file
             std::vector<std::pair<double,double>> _vxr;
-            if (!elh.value().contains("fit-range-x")) {
+            if (!elh.value().contains("fit-range-x") and !elh.value().contains("fit-range")) {
                 _vxr.push_back({
                     _current_ds.data->GetXaxis()->GetBinCenter(1),
                     _current_ds.data->GetXaxis()->GetBinCenter(_current_ds.data->GetNbinsX())
                 });
             }
             else { // sanity check x-range
-                auto & x_range = elh.value()["fit-range-x"];
+                auto & x_range = elh.value().contains("fit-range-x") 
+                    ? elh.value()["fit-range-x"] : elh.value()["fit-range"];
                 if (!x_range.is_array())
                     throw std::runtime_error("wrong \"fit-range-x\" format, array expected");
                 if (!(x_range[0].is_array() or x_range[0].is_number())) 
@@ -592,10 +593,13 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
     // please do not delete it when the TFile goes out of scope
     if (obj->InheritsFrom(TH1::Class())) {
         auto _th = dynamic_cast<TH1*>(obj);
+        // rebin component
         _th->Rebin(rebin_x);
         if ((rebin_y != 1) and (obj->InheritsFrom(TH2::Class()))) {
             dynamic_cast<TH2*>(obj)->RebinY(rebin_y);
+            BCLog::OutDebug("rebinned combonent : [" + std::to_string(rebin_x) + "," + std::to_string(rebin_y) + "]");
         }
+        // sanity checks
         if (_th->GetDimension() > 2) throw std::runtime_error("TH3 are not supported yet");
         if (_th->GetNcells() != dataformat->GetNcells() or // ncells : nbins + over- and underflow
             _th->GetDimension() != dataformat->GetDimension() or
@@ -604,29 +608,29 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
             throw std::runtime_error("histogram '" + objectname + "' in file " + filename
                 + " and corresponding data histogram do not have the same number of bins and/or same ranges");
         }
-        else if (_th->GetDimension() == 2) {
+        if (_th->GetDimension() == 2) {
             if (_th->GetYaxis()->GetXmin() != dataformat->GetYaxis()->GetXmin() or
                 _th->GetYaxis()->GetXmax() != dataformat->GetYaxis()->GetXmax()) {
                 throw std::runtime_error("histogram '" + objectname + "' in file " + filename
                 + " and corresponding data histogram do not have the same y-ranges");
             }
-            _th->SetDirectory(nullptr);
-            TParameter<Long64_t>* _nprim = nullptr;
-            auto _name_nodir = objectname.substr(objectname.find_last_of('/')+1, std::string::npos);
-            if (_name_nodir.substr(0, 3) == "M1_") {
-                _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesEdep"));
-            }
-            else if (_name_nodir.substr(0, 3) == "M2_") {
-                _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesCoin"));
-            }
-            if (!_nprim) {
-                BCLog::OutWarning("could not find suitable 'NumberOrPrimaries' object in '"
-                    + filename + "', skipping normalization");
-            }
-            else _th->Scale(1./_nprim->GetVal());
-
-            return _th;
         }
+        _th->SetDirectory(nullptr);
+        TParameter<Long64_t>* _nprim = nullptr;
+        auto _name_nodir = objectname.substr(objectname.find_last_of('/')+1, std::string::npos);
+        if (_name_nodir.substr(0, 3) == "M1_") {
+            _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesEdep"));
+        }
+        else if (_name_nodir.substr(0, 3) == "M2_") {
+            _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesCoin"));
+        }
+        if (!_nprim) {
+            BCLog::OutWarning("could not find suitable 'NumberOrPrimaries' object in '"
+                + filename + "', skipping normalization");
+        }
+        else _th->Scale(1./_nprim->GetVal());
+        
+        return _th;
     }
     else if (obj->InheritsFrom(TF1::Class())) {
         auto _th = new TH1D(obj->GetName(), obj->GetTitle(), dataformat->GetNbinsX(),
@@ -640,7 +644,7 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
     else {
         throw std::runtime_error("object '" + objectname + "' in file " + filename + " isn't of type TH1 or TF1");
     }
-    
+
     return nullptr;
 }
 
