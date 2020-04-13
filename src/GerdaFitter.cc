@@ -696,12 +696,12 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
     // build results tree
     TTree tt("fit_par_results", "Results of the fitting procedure");
     tt.Branch("par_name",          par_name);
-    tt.Branch("marg_mode",         &marg_mode,       "marg_mode/F");
-    tt.Branch("marg_quantile_16",  &marg_qt16,       "marg_quantile_16/F");
-    tt.Branch("marg_quantile_84",  &marg_qt84,       "marg_quantile_84/F");
-    tt.Branch("marg_quantile_90",  &marg_qt90,       "marg_quantile_90/F");
-    tt.Branch("glob_mode",         &glob_mode,       "glob_mode/F");
-    tt.Branch("glob_mode_error",   &glob_mode_error, "glob_mode_error/F");
+    tt.Branch("marg_mode",         &marg_mode,       "marg_mode/D");
+    tt.Branch("marg_quantile_16",  &marg_qt16,       "marg_quantile_16/D");
+    tt.Branch("marg_quantile_84",  &marg_qt84,       "marg_quantile_84/D");
+    tt.Branch("marg_quantile_90",  &marg_qt90,       "marg_quantile_90/D");
+    tt.Branch("glob_mode",         &glob_mode,       "glob_mode/D");
+    tt.Branch("glob_mode_error",   &glob_mode_error, "glob_mode_error/D");
 
     for (unsigned int p = 0; p < this->GetNParameters(); p++) {
         BCLog::OutDebug("Writing Parameter " + this->GetVariable(p).GetName() + " to tree");
