@@ -15,6 +15,8 @@
 
 // ROOT
 #include "TF1.h"
+#include "TH2.h"
+#include "TTree.h"
 #include "TFile.h"
 #include "TString.h"
 #include "TParameter.h"
@@ -537,7 +539,7 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
             _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesCoin"));
         }
         if (!_nprim) {
-            BCLog::OutWarning("could not find suitable 'NumberOrPrimaries' object in '"
+            BCLog::OutWarning("could not find suitable 'NumberOfPrimaries' object in '"
                 + filename + "', skipping normalization");
         }
         else _th->Scale(1./_nprim->GetVal());
@@ -662,11 +664,13 @@ void GerdaFitter::SaveHistograms(std::string filename) {
 
         TH1* sum = nullptr;
         for (auto& h : it.comp) {
-            h.second->Scale(this->GetBestFitParameters()[h.first]);
-            // compute total model
-            if (!sum) sum = dynamic_cast<TH1*>(h.second->Clone());
-            else      sum->Add(h.second);
-            h.second->Write();
+            auto hcopy = dynamic_cast<TH1*>(h.second->Clone());
+            hcopy->Scale(this->GetBestFitParameters()[h.first]);
+            // compute total model without changing the components
+            if (!sum) sum = dynamic_cast<TH1*>(hcopy->Clone());
+            else      sum->Add(hcopy);
+            hcopy->Write(h.second->GetName());
+            delete hcopy;
         }
         sum->SetTitle("total_model");
         sum->Write("total_model");
@@ -678,6 +682,110 @@ void GerdaFitter::SaveHistograms(std::string filename) {
         range_low.Write();
         range_upp.Write();
         tf.cd();
+    }
+}
+
+void GerdaFitter::WriteResultsTree(std::string filename) {
+    BCLog::OutSummary("Writing Parameters to output Tree in " + filename);
+    TFile tf(filename.c_str(), "recreate");
+    // define parameters
+    auto par_name = new std::string;
+    float marg_mode;
+    float marg_qt16, marg_qt84, marg_qt90;
+    float glob_mode, glob_mode_error;
+    // build results tree
+    TTree tt("fit_par_results", "Results of the fitting procedure");
+    tt.Branch("par_name",          par_name);
+    tt.Branch("marg_mode",         &marg_mode,       "marg_mode/D");
+    tt.Branch("marg_quantile_16",  &marg_qt16,       "marg_quantile_16/D");
+    tt.Branch("marg_quantile_84",  &marg_qt84,       "marg_quantile_84/D");
+    tt.Branch("marg_quantile_90",  &marg_qt90,       "marg_quantile_90/D");
+    tt.Branch("glob_mode",         &glob_mode,       "glob_mode/D");
+    tt.Branch("glob_mode_error",   &glob_mode_error, "glob_mode_error/D");
+
+    for (unsigned int p = 0; p < this->GetNParameters(); p++) {
+        BCLog::OutDebug("Writing Parameter " + this->GetVariable(p).GetName() + " to tree");
+        auto bch_marg = this->GetMarginalized(p);
+        *par_name = std::string(this->GetVariable(p).GetName().data());
+        marg_mode = bch_marg.GetLocalMode();
+        marg_qt16 = bch_marg.GetQuantile(0.16);
+        marg_qt84 = bch_marg.GetQuantile(0.84);
+        marg_qt90 = bch_marg.GetQuantile(0.90);
+        glob_mode = this->GetBestFitParameters()[p];
+        glob_mode_error = this->GetBestFitParameterErrors()[p];
+        tt.Fill();
+    }
+    tt.Write();
+
+    // calculate integral of raw histogram in fit range
+    for (auto ds : data) {
+        std::string * comp_name = new std::string;
+        double orig_range, orig_bi;
+        double best_range, best_bi;
+        double bestErr_range, bestErr_bi;
+        double marg_range, marg_bi;
+        double qt16_range, qt16_bi;
+        double qt84_range, qt84_bi;
+        double qt90_range, qt90_bi;
+
+        TTree ttds(Form("counts_%s", ds.data->GetName()), "counts in selected regions for each parameter");
+        ttds.Branch("comp_name",               comp_name);
+        ttds.Branch("fit_range_orig",          &orig_range,    "fit_range_orig/D");
+        ttds.Branch("fit_range_glob_mode",     &best_range,    "fit_range_glob_mode/D");
+        ttds.Branch("fit_range_glob_mode_err", &bestErr_range, "fit_range_glob_mode_err/D");
+        ttds.Branch("fit_range_marg_mod",      &marg_range,    "fit_range_marg_mod/D");
+        ttds.Branch("fit_range_qt16",          &qt16_range,    "fit_range_qt16/D");
+        ttds.Branch("fit_range_qt84",          &qt84_range,    "fit_range_qt84/D");
+        ttds.Branch("fit_range_qt90",          &qt90_range,    "fit_range_qt90/D");
+        ttds.Branch("bi_range_orig",           &orig_bi,       "bi_range_orig/D");
+        ttds.Branch("bi_range_glob_mode",      &best_bi,       "bi_range_glob_mode/D");
+        ttds.Branch("bi_range_glob_mode_err",  &bestErr_bi,    "bi_range_glob_mode_err/D");
+        ttds.Branch("bi_range_marg_mode",      &marg_bi,       "bi_range_marg_mode/D");
+        ttds.Branch("bi_range_qt16",           &qt16_bi,       "bi_range_qt16/D");
+        ttds.Branch("bi_range_qt84",           &qt84_bi,       "bi_range_qt84/D");
+        ttds.Branch("bi_range_qt90",           &qt90_bi,       "bi_range_qt90/D");
+
+        for (auto c : ds.comp) {
+            *comp_name = std::string(this->GetVariable(c.first).GetName().data());
+            auto & ch = c.second;
+            double best    = this->GetBestFitParameters()[c.first];
+            double bestErr = this->GetBestFitParameterErrors()[c.first];
+            auto bch_marg  = this->GetMarginalized(c.first);
+            orig_range = 0.;
+            for (auto r : ds.brange) {
+                orig_range += ch->Integral(r.first, r.second);
+            }
+            best_range    = orig_range*best;
+            bestErr_range = orig_range*bestErr;
+            marg_range    = orig_range*bch_marg.GetLocalMode();
+            qt16_range    = marg_range - orig_range*bch_marg.GetQuantile(0.16);
+            qt84_range    = orig_range*bch_marg.GetQuantile(0.84) - marg_range;
+            qt90_range    = orig_range*bch_marg.GetQuantile(0.90);
+            orig_bi = 0., best_bi = 0., bestErr_bi = 0.;
+            if (!ds.data->InheritsFrom(TH2::Class())) {
+                std::vector<int> bins = { // BI window
+                    ch->FindBin(1930), ch->FindBin(2099),
+                    ch->FindBin(2109), ch->FindBin(2114),
+                    ch->FindBin(2124), ch->FindBin(2190)
+                };
+                bool bad_bins = false;
+                for (auto b : bins) {
+                    bad_bins = ch->IsBinUnderflow(b) or ch->IsBinOverflow(b);
+                }
+                if (bad_bins) continue;
+                orig_bi += ch->Integral(bins[0], bins[1]);
+                orig_bi += ch->Integral(bins[2], bins[3]);
+                orig_bi += ch->Integral(bins[4], bins[5]);
+                best_bi    = orig_bi*best;
+                bestErr_bi = orig_bi*bestErr;
+                marg_bi    = orig_bi*bch_marg.GetLocalMode();
+                qt16_bi    = marg_bi - orig_bi*bch_marg.GetQuantile(0.16);
+                qt84_bi    = orig_bi*bch_marg.GetQuantile(0.84) - marg_bi;
+                qt90_bi    = orig_bi*bch_marg.GetQuantile(0.90);
+            }
+            ttds.Fill();
+        }
+        ttds.Write();
     }
 }
 
@@ -710,10 +818,12 @@ double GerdaFitter::GetFastPValue(const std::vector<double>& parameters, long ni
         // compute total model
         TH1* sum = nullptr;
         for (auto& h : it.comp) {
-            h.second->Scale(parameters[h.first]);
+            auto hcopy = dynamic_cast<TH1*>(h.second->Clone());
+            hcopy->Scale(parameters[h.first]);
             // compute total model
-            if (!sum) sum = dynamic_cast<TH1*>(h.second->Clone());
-            else      sum->Add(h.second);
+            if (!sum) sum = dynamic_cast<TH1*>(hcopy);
+            else      sum->Add(hcopy);
+            delete hcopy;
         }
         for (auto& r : it.brange) {
             for (int b = r.first; b < r.second; ++b) {
