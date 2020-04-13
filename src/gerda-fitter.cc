@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
     model->SetKnowledgeUpdateDrawingStyle(BCAux::kKnowledgeUpdateDetailedPosterior);
     model->PrintKnowledgeUpdatePlots(prefix + "know-update.pdf");
     model->SaveHistograms(prefix + "histograms.root");
-    model->WriteResultsTree(prefix + "par-tree.root");
+    model->WriteResultsTree(prefix + "tree.root");
 
     BCLog::OutSummary("Exiting");
     // close log file

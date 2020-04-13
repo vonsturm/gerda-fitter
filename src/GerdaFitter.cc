@@ -15,6 +15,7 @@
 
 // ROOT
 #include "TF1.h"
+#include "TH2.h"
 #include "TTree.h"
 #include "TFile.h"
 #include "TString.h"
@@ -663,11 +664,13 @@ void GerdaFitter::SaveHistograms(std::string filename) {
 
         TH1* sum = nullptr;
         for (auto& h : it.comp) {
-            h.second->Scale(this->GetBestFitParameters()[h.first]);
-            // compute total model
-            if (!sum) sum = dynamic_cast<TH1*>(h.second->Clone());
-            else      sum->Add(h.second);
-            h.second->Write();
+            auto hcopy = dynamic_cast<TH1*>(h.second->Clone());
+            hcopy->Scale(this->GetBestFitParameters()[h.first]);
+            // compute total model without changing the components
+            if (!sum) sum = dynamic_cast<TH1*>(hcopy->Clone());
+            else      sum->Add(hcopy);
+            hcopy->Write(h.second->GetName());
+            delete hcopy;
         }
         sum->SetTitle("total_model");
         sum->Write("total_model");
@@ -683,37 +686,108 @@ void GerdaFitter::SaveHistograms(std::string filename) {
 }
 
 void GerdaFitter::WriteResultsTree(std::string filename) {
+    BCLog::OutSummary("Writing Parameters to output Tree in " + filename);
     TFile tf(filename.c_str(), "recreate");
     // define parameters
     auto par_name = new std::string;
-    float global_mode;
     float marg_mode;
     float marg_qt16, marg_qt84, marg_qt90;
     float best_fit, best_fit_error;
     // build results tree
-    TTree tt("resTree","resTree");
-    tt.Branch("par_name",         par_name);
-    tt.Branch("global_mode",      &global_mode,    "Global_Mode/F");
-    tt.Branch("marg_mode",        &marg_mode,      "Marginalized_Mode/F");
-    tt.Branch("marg_quantile_16", &marg_qt16,      "Marginalized_Quantile_16/F");
-    tt.Branch("marg_quantile_84", &marg_qt84,      "Marginalized_Quantile_84/F");
-    tt.Branch("marg_quantile_90", &marg_qt90,      "Marginalized_Quantile_90/F");
-    tt.Branch("best_fit",         &best_fit,       "Best_Fit/F");
+    TTree tt("parTree","parTree");
+    tt.Branch("par_name",          par_name);
+    tt.Branch("marg_mode",        &marg_mode,    "Marginalized_Mode/F");
+    tt.Branch("marg_quantile_16", &marg_qt16,    "Marginalized_Quantile_16/F");
+    tt.Branch("marg_quantile_84", &marg_qt84,    "Marginalized_Quantile_84/F");
+    tt.Branch("marg_quantile_90", &marg_qt90,    "Marginalized_Quantile_90/F");
+    tt.Branch("best_fit",         &best_fit,     "Best_Fit/F");
     tt.Branch("best_fit_error",   &best_fit_error, "Best_Fit_Error/F");
 
     for (unsigned int p = 0; p < this->GetNParameters(); p++) {
-        *par_name = std::string(this->GetVariable(p).GetName().data());
+        BCLog::OutDebug("Writing Parameter " + this->GetVariable(p).GetName() + " to tree");
         auto bch_marg = this->GetMarginalized(p);
-        global_mode = bch_marg.GetMedian();
+        *par_name = std::string(this->GetVariable(p).GetName().data());
         marg_mode = bch_marg.GetLocalMode();
-        marg_qt16 = bch_marg.GetLimit(0.16);
-        marg_qt84 = bch_marg.GetLimit(0.84);
-        marg_qt90 = bch_marg.GetLimit(0.90);
+        marg_qt16 = bch_marg.GetQuantile(0.16);
+        marg_qt84 = bch_marg.GetQuantile(0.84);
+        marg_qt90 = bch_marg.GetQuantile(0.90);
         best_fit = this->GetBestFitParameters()[p];
         best_fit_error = this->GetBestFitParameterErrors()[p];
         tt.Fill();
     }
     tt.Write();
+
+    // calculate integral of raw histogram in fit range
+    for (auto ds : data) {
+
+        std::string * comp_name = new std::string;
+        double raw_range, raw_bi;
+        double best_range, best_bi;
+        double bestErr_range, bestErr_bi;
+        double marg_range, marg_bi;
+        double qt16_range, qt16_bi;
+        double qt84_range, qt84_bi;
+        double qt90_range, qt90_bi;
+
+        TTree ttds(Form("ctsTree_%s",ds.data->GetName()), Form("ctsTree_%s",ds.data->GetName()));
+        ttds.Branch("comp_name",          comp_name);
+        ttds.Branch("raw_fit_range",     &raw_range,     "Raw_Counts_Range/D");
+        ttds.Branch("raw_bi",            &raw_bi,        "Raw_Counts_BI_Window/D");
+        ttds.Branch("best_fit_range",    &best_range,    "BestFit_Range/D");
+        ttds.Branch("bestErr_fit_range", &bestErr_range, "BestFitErr_Range/D");
+        ttds.Branch("marg_range",        &marg_range,    "MargMode_Range_Window/D");
+        ttds.Branch("qt16_range",        &qt16_range,    "Qt16_Range_Window/D");
+        ttds.Branch("qt84_range",        &qt84_range,    "Qt84_Range_Window/D");
+        ttds.Branch("qt90_range",        &qt90_range,    "Qt90_Range_Window/D");
+        ttds.Branch("best_bi",           &best_bi,       "BestFit_BI_Window/D");
+        ttds.Branch("bestErr_bi",        &bestErr_bi,    "BestFitErr_BI_Window/D");
+        ttds.Branch("marg_bi",           &marg_bi,       "MargMode_BI_Window/D");
+        ttds.Branch("qt16_bi",           &qt16_bi,       "Qt16_BI_Window/D");
+        ttds.Branch("qt84_bi",           &qt84_bi,       "Qt84_BI_Window/D");
+        ttds.Branch("qt90_bi",           &qt90_bi,       "Qt90_BI_Window/D");
+
+        for (auto c : ds.comp) {
+            *comp_name = std::string(this->GetVariable(c.first).GetName().data());
+            auto & ch = c.second;
+            double best    = this->GetBestFitParameters()[c.first];
+            double bestErr = this->GetBestFitParameterErrors()[c.first];
+            auto bch_marg  = this->GetMarginalized(c.first);
+            raw_range = 0.;
+            for (auto r : ds.brange) {
+                raw_range += ch->Integral(r.first, r.second);
+            }
+            best_range    = raw_range*best;
+            bestErr_range = raw_range*bestErr;
+            marg_range    = raw_range*bch_marg.GetLocalMode();
+            qt16_range    = marg_range - raw_range*bch_marg.GetQuantile(0.16);
+            qt84_range    = raw_range*bch_marg.GetQuantile(0.84) - marg_range;
+            qt90_range    = raw_range*bch_marg.GetQuantile(0.90);
+            raw_bi = 0., best_bi = 0., bestErr_bi = 0.;
+            if (!ds.data->InheritsFrom(TH2::Class())) {
+                std::vector<int> bins = { // BI window
+                    ch->FindBin(1930), ch->FindBin(2099),
+                    ch->FindBin(2109), ch->FindBin(2114),
+                    ch->FindBin(2124), ch->FindBin(2190)
+                };
+                bool bad_bins = false;
+                for (auto b : bins) {
+                    bad_bins = ch->IsBinUnderflow(b) or ch->IsBinOverflow(b);
+                }
+                if (bad_bins) continue;
+                raw_bi += ch->Integral(bins[0], bins[1]);
+                raw_bi += ch->Integral(bins[2], bins[3]);
+                raw_bi += ch->Integral(bins[4], bins[5]);
+                best_bi    = raw_bi*best;
+                bestErr_bi = raw_bi*bestErr;
+                marg_bi    = raw_bi*bch_marg.GetLocalMode();
+                qt16_bi    = marg_bi - raw_bi*bch_marg.GetQuantile(0.16);
+                qt84_bi    = raw_bi*bch_marg.GetQuantile(0.84) - marg_bi;
+                qt90_bi    = raw_bi*bch_marg.GetQuantile(0.90);
+            }
+            ttds.Fill();
+        }
+        ttds.Write();
+    }
 }
 
 void GerdaFitter::DumpData() {
@@ -745,10 +819,12 @@ double GerdaFitter::GetFastPValue(const std::vector<double>& parameters, long ni
         // compute total model
         TH1* sum = nullptr;
         for (auto& h : it.comp) {
-            h.second->Scale(parameters[h.first]);
+            auto hcopy = dynamic_cast<TH1*>(h.second->Clone());
+            hcopy->Scale(parameters[h.first]);
             // compute total model
-            if (!sum) sum = dynamic_cast<TH1*>(h.second->Clone());
-            else      sum->Add(h.second);
+            if (!sum) sum = dynamic_cast<TH1*>(hcopy);
+            else      sum->Add(hcopy);
+            delete hcopy;
         }
         for (auto& r : it.brange) {
             for (int b = r.first; b < r.second; ++b) {
