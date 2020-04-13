@@ -15,6 +15,7 @@
 
 // ROOT
 #include "TF1.h"
+#include "TTree.h"
 #include "TFile.h"
 #include "TString.h"
 #include "TParameter.h"
@@ -537,7 +538,7 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
             _nprim = dynamic_cast<TParameter<Long64_t>*>(_tf.Get("NumberOfPrimariesCoin"));
         }
         if (!_nprim) {
-            BCLog::OutWarning("could not find suitable 'NumberOrPrimaries' object in '"
+            BCLog::OutWarning("could not find suitable 'NumberOfPrimaries' object in '"
                 + filename + "', skipping normalization");
         }
         else _th->Scale(1./_nprim->GetVal());
@@ -680,6 +681,42 @@ void GerdaFitter::SaveHistograms(std::string filename) {
         tf.cd();
     }
 }
+
+
+void GerdaFitter::WriteResultsTree(std::string filename) {
+    TFile tf(filename.c_str(), "recreate");
+    // define parameters
+    char * par_name = new char[50];
+    float global_mode;
+    float marg_mode;
+    float marg_qt16, marg_qt84, marg_qt90;
+    float best_fit, best_fit_error;
+    // build results tree
+    TTree tt("resTree","resTree");
+    tt.Branch("par_name",          par_name,    "Name");
+    tt.Branch("global_mode",      &global_mode, "Global_Mode/F");
+    tt.Branch("marg_mode",        &marg_mode,   "Marginalized_Mode/F");
+    tt.Branch("marg_quantile_16", &marg_qt16,   "Marginalized_Quantile_16/F");
+    tt.Branch("marg_quantile_84", &marg_qt84,   "Marginalized_Quantile_84/F");
+    tt.Branch("marg_quantile_90", &marg_qt90,   "Marginalized_Quantile_90/F");
+    tt.Branch("best_fit",         &best_fit,    "Best_Fit/F");
+    tt.Branch("best_fit_error",   &best_fit_error, "Best_Fit_Error/F");
+
+    for (unsigned int p = 0; p < this->GetNParameters(); p++) {
+        strcpy(par_name, this->GetVariable(p).GetName().data());
+        auto bch_marg = this->GetMarginalized(p);
+        global_mode = bch_marg.GetMedian();
+        marg_mode = bch_marg.GetLocalMode();
+        marg_qt16 = bch_marg.GetLimit(0.16);
+        marg_qt84 = bch_marg.GetLimit(0.84);
+        marg_qt90 = bch_marg.GetLimit(0.90);
+        best_fit = this->GetBestFitParameters()[p];
+        best_fit_error = this->GetBestFitParameterErrors()[p];
+        tt.Fill();
+    }
+    tt.Write();
+}
+
 
 void GerdaFitter::DumpData() {
     for (auto& it : data) {
