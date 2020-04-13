@@ -463,13 +463,18 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                 if (_vxr.empty()) throw std::runtime_error("Something went wrong with the TH1 x-range");
                 else {
                     for (auto x : _vxr) {
+                        // no under or overflow bins allowed
+                        while (_current_ds.data->IsBinUnderflow(x.first,1)) x.first++;
+                        while (_current_ds.data->IsBinOverflow(x.second,1)) x.second--;
                         _current_ds.brange.push_back({
                             _current_ds.data->FindBin(x.first),
                             _current_ds.data->FindBin(x.second)
                         });
                         BCLog::OutDetail("Adding fit range x [" +
                             std::to_string(_current_ds.brange.back().first) + ", " +
-                            std::to_string(_current_ds.brange.back().second) + "] (bins)"
+                            std::to_string(_current_ds.brange.back().second) + "] (bins) [" +
+                            std::to_string(x.first) + ", " +
+                            std::to_string(x.second) + "] (x-units)"
                         );
                     }
                 }
@@ -511,7 +516,13 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                     // translate ranges in global bin ranges
                     auto _y_bin_width = _current_ds.data->GetYaxis()->GetBinWidth(1);
                     for (auto x : _vxr) {
+                        // no under or overflow bins allowed
+                        while (_current_ds.data->IsBinUnderflow(x.first,1)) x.first++;
+                        while (_current_ds.data->IsBinOverflow(x.second,1)) x.second--;
                         for (auto y : _vyr) {
+                            // no under or overflow bins allowed
+                            while (_current_ds.data->IsBinUnderflow(y.first,2)) y.first++;
+                            while (_current_ds.data->IsBinOverflow(y.second,2)) y.second--;
                             auto _y_pos = y.first;
                             auto _y_max = y.second;
                             while (_y_pos <= _y_max) {
@@ -522,7 +533,9 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                                 _y_pos += _y_bin_width;
                                 BCLog::OutDetail("Adding fit range TH2 global [" +
                                     std::to_string(_current_ds.brange.back().first) + ", " +
-                                    std::to_string(_current_ds.brange.back().second) + "] (bins)"
+                                    std::to_string(_current_ds.brange.back().second) + "] (bins) [" +
+                                    std::to_string(x.first) + ", " + std::to_string(x.second) + " : " +
+                                    std::to_string(_y_pos) + "] (x-units:y-units)"
                                 );
                             }
                         }
