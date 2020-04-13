@@ -22,8 +22,10 @@ void usage() {
 }
 
 TH1D* collapse(TH2* h) {
-    TH1D* hout = h->ProjectionX();
+    auto hout = h->ProjectionX();
     hout->Add(h->ProjectionY());
+    hout->SetName((std::string(h->GetName()) + "_proj").c_str());
+    hout->SetTitle((std::string(h->GetTitle()) + " (collapsed)").c_str());
     return hout;
 }
 
@@ -180,11 +182,23 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
                 model->Rebin(rebin);
             }
 
+            data->SetMarkerStyle(7);
             data->SetFillStyle(3003);
             data->SetLineColorAlpha(kAzure-4, 1);
             data->SetFillColorAlpha(kAzure-4, 1);
             model->SetLineColor(kRed);
             if (!is_th2) model->SetLineWidth(2);
+
+            // calculate z axis maximum for TH2 in "lego" mode.
+            // will be set as common maximum range for all z axes.
+            // for some reason ROOT does not use the same z range when
+            // drawing TH2s with "lego same".
+            double th2_zmax = 0;
+            if (is_th2) {
+                th2_zmax = 1.1*std::max(model->GetMaximum(), data->GetMaximum());
+                data->GetZaxis()->SetRangeUser(0, th2_zmax);
+                model->GetZaxis()->SetRangeUser(0, th2_zmax);
+            }
 
             // set up canvas
             if (!canvas) {
@@ -204,8 +218,7 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
 
             // poissonian bands?
             if (bands and !is_th2) {
-                auto resgraph = dynamic_cast<TH1D*>(data->Clone());
-                resgraph->SetMarkerStyle(7);
+                auto resgraph = dynamic_cast<TH1*>(data->Clone());
 
                 if (residuals) resgraph->Divide(model);
                 if (range_low_x and range_upp_x) resgraph->GetXaxis()->SetRangeUser(range_low_x->GetVal(), range_upp_x->GetVal());
@@ -236,8 +249,8 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
             }
             // regular plot
             else {
-                if (is_th2) data->Draw("hist 0 lego1");
-                else data->Draw("hist");
+                if (is_th2) data->Draw("hist 0 lego");
+                else        data->Draw("hist");
 
                 if (logy and  is_th2) gPad->SetLogz();
                 if (logy and !is_th2) gPad->SetLogy();
@@ -249,15 +262,17 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
                     auto cll = TClass::GetClass(keyy->GetClassName());
                     // make sure it's a histogram (whatever dim)
                     if (cll->InheritsFrom(TH1::Class())) {
+                        auto obj = keyy->ReadObj();
                         if (is_th2) {
-                            h = dynamic_cast<TH2*>(keyy->ReadObj())->Rebin2D(rebin);
+                            h = dynamic_cast<TH2*>(obj)->Rebin2D(rebin);
                             h->SetLineColor(kGray+1);
                             dynamic_cast<TH2*>(h)->Rebin2D(rebin);
-                            h->Draw("hist same 0 lego1");
+                            h->GetZaxis()->SetRangeUser(0, th2_zmax);
+                            h->Draw("hist same 0 lego");
                         }
                         else {
-                            if (was_th2 and collapse_2d) h = collapse(dynamic_cast<TH2*>(keyy->ReadObj()));
-                            else                         h = dynamic_cast<TH1*>(keyy->ReadObj());
+                            if (was_th2 and collapse_2d) h = collapse(dynamic_cast<TH2*>(obj));
+                            else                         h = dynamic_cast<TH1*>(obj);
                             h->SetLineColor(kGray+1);
                             h->Rebin(rebin);
                             h->Draw("hist same");
@@ -270,8 +285,8 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
 
                 // redraw data and model
                 if (is_th2) {
-                    data->Draw("hist 0 lego1 same");
-                    model->Draw("hist 0 lego1 same");
+                    data->Draw("hist 0 lego same");
+                    model->Draw("hist 0 lego same");
                 }
                 else {
                     data->Draw("hist same");
