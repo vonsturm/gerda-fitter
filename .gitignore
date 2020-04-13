@@ -1,6 +1,7 @@
 gerda-fitter
 results
 data
+*.sif
 
 # junk
 .DS_Store

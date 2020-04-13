@@ -91,6 +91,7 @@ class GerdaFitter : public BCModel {
     void PrintOptimizationSummary();
     void PrintShortMarginalizationSummary();
     void SaveHistograms(std::string filename);
+    void WriteResultsTree(std::string filename);
     double GetFastPValue(const std::vector<double>& parameters, long niter);
 
     std::vector<dataset> data;

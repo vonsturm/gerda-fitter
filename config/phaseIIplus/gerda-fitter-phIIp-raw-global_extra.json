@@ -58,9 +58,19 @@
                 "long-name" : "^{212}Bi + ^{208}Tl - cables",
                 "units" : "cts"
             },
+            "Bi212Tl208-central-fiber-shroud" : {
+                "range" : [0, 3E4],
+                "long-name" : "^{212}Bi + ^{208}Tl - central fiber shroud",
+                "units" : "cts"
+            },
             "Co60-cables" : {
                 "range" : [5E2, 8E3],
                 "long-name" : "^{60}Co - cables",
+                "units" : "cts"
+            },
+            "Co60-central-fiber-shroud" : {
+                "range" : [0, 8E3],
+                "long-name" : "^{60}Co - central fiber shroud",
                 "units" : "cts"
             },
             "Pb214Bi214-cables" : {
@@ -68,9 +78,19 @@
                 "long-name" : "^{214}Pb + ^{214}Bi - cables",
                 "units" : "cts"
             },
+            "Pb214Bi214-central-fiber-shroud" : {
+                "range" : [0, 3.5E4],
+                "long-name" : "^{214}Pb + ^{214}Bi - central fiber shroud",
+                "units" : "cts"
+            },
             "Ac228-holders" : {
                 "range" : [1E3, 1.5E4],
                 "long-name" : "^{228}Ac - holders",
+                "units" : "cts"
+            },
+            "Ac228-central-fiber-shroud" : {
+                "range" : [0, 1.5E4],
+                "long-name" : "^{228}Ac - central fiber shroud",
                 "units" : "cts"
             },
             "K40-central-fiber-shroud" : {
@@ -202,6 +222,18 @@
                         {
                             "part": "larveto/inner_fibers",
                             "components" : {
+                                "Co60-central-fiber-shroud" : {
+                                    "isotope" : "Co60"
+                                },
+                                "Ac228-central-fiber-shroud" : {
+                                    "isotope" : "Ac228"
+                                },
+                                "Bi212Tl208-central-fiber-shroud" : {
+                                    "isotope" : { "Tl208" : 0.3539, "Bi212" : 1 }
+                                },
+                                "Pb214Bi214-central-fiber-shroud" : {
+                                    "isotope" : { "Bi214" : 1, "Pb214" : 1 }
+                                },
                                 "K40-central-fiber-shroud" : {
                                     "isotope" : "K40"
                                 }
@@ -313,6 +345,18 @@
                         {
                             "part": "larveto/inner_fibers",
                             "components" : {
+                                "Co60-central-fiber-shroud" : {
+                                    "isotope" : "Co60"
+                                },
+                                "Ac228-central-fiber-shroud" : {
+                                    "isotope" : "Ac228"
+                                },
+                                "Bi212Tl208-central-fiber-shroud" : {
+                                    "isotope" : { "Tl208" : 0.3539, "Bi212" : 1 }
+                                },
+                                "Pb214Bi214-central-fiber-shroud" : {
+                                    "isotope" : { "Bi214" : 1, "Pb214" : 1 }
+                                },
                                 "K40-central-fiber-shroud" : {
                                     "isotope" : "K40"
                                 }
@@ -416,6 +460,18 @@
                         {
                             "part": "larveto/inner_fibers",
                             "components" : {
+                                "Co60-central-fiber-shroud" : {
+                                    "isotope" : "Co60"
+                                },
+                                "Ac228-central-fiber-shroud" : {
+                                    "isotope" : "Ac228"
+                                },
+                                "Bi212Tl208-central-fiber-shroud" : {
+                                    "isotope" : { "Tl208" : 0.3539, "Bi212" : 1 }
+                                },
+                                "Pb214Bi214-central-fiber-shroud" : {
+                                    "isotope" : { "Bi214" : 1, "Pb214" : 1 }
+                                },
                                 "K40-central-fiber-shroud" : {
                                     "isotope" : "K40"
                                 }
@@ -503,6 +559,18 @@
                         {
                             "part": "larveto/inner_fibers",
                             "components" : {
+                                "Co60-central-fiber-shroud" : {
+                                    "isotope" : "Co60"
+                                },
+                                "Ac228-central-fiber-shroud" : {
+                                    "isotope" : "Ac228"
+                                },
+                                "Bi212Tl208-central-fiber-shroud" : {
+                                    "isotope" : { "Tl208" : 0.3539, "Bi212" : 1 }
+                                },
+                                "Pb214Bi214-central-fiber-shroud" : {
+                                    "isotope" : { "Bi214" : 1, "Pb214" : 1 }
+                                },
                                 "K40-central-fiber-shroud" : {
                                     "isotope" : "K40"
                                 }
