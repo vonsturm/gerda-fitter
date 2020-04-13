@@ -682,28 +682,27 @@ void GerdaFitter::SaveHistograms(std::string filename) {
     }
 }
 
-
 void GerdaFitter::WriteResultsTree(std::string filename) {
     TFile tf(filename.c_str(), "recreate");
     // define parameters
-    char * par_name = new char[50];
+    auto par_name = new std::string;
     float global_mode;
     float marg_mode;
     float marg_qt16, marg_qt84, marg_qt90;
     float best_fit, best_fit_error;
     // build results tree
     TTree tt("resTree","resTree");
-    tt.Branch("par_name",          par_name,    "Name");
-    tt.Branch("global_mode",      &global_mode, "Global_Mode/F");
-    tt.Branch("marg_mode",        &marg_mode,   "Marginalized_Mode/F");
-    tt.Branch("marg_quantile_16", &marg_qt16,   "Marginalized_Quantile_16/F");
-    tt.Branch("marg_quantile_84", &marg_qt84,   "Marginalized_Quantile_84/F");
-    tt.Branch("marg_quantile_90", &marg_qt90,   "Marginalized_Quantile_90/F");
-    tt.Branch("best_fit",         &best_fit,    "Best_Fit/F");
+    tt.Branch("par_name",         par_name);
+    tt.Branch("global_mode",      &global_mode,    "Global_Mode/F");
+    tt.Branch("marg_mode",        &marg_mode,      "Marginalized_Mode/F");
+    tt.Branch("marg_quantile_16", &marg_qt16,      "Marginalized_Quantile_16/F");
+    tt.Branch("marg_quantile_84", &marg_qt84,      "Marginalized_Quantile_84/F");
+    tt.Branch("marg_quantile_90", &marg_qt90,      "Marginalized_Quantile_90/F");
+    tt.Branch("best_fit",         &best_fit,       "Best_Fit/F");
     tt.Branch("best_fit_error",   &best_fit_error, "Best_Fit_Error/F");
 
     for (unsigned int p = 0; p < this->GetNParameters(); p++) {
-        strcpy(par_name, this->GetVariable(p).GetName().data());
+        *par_name = std::string(this->GetVariable(p).GetName().data());
         auto bch_marg = this->GetMarginalized(p);
         global_mode = bch_marg.GetMedian();
         marg_mode = bch_marg.GetLocalMode();
@@ -716,7 +715,6 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
     }
     tt.Write();
 }
-
 
 void GerdaFitter::DumpData() {
     for (auto& it : data) {
