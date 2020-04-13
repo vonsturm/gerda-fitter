@@ -435,11 +435,11 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                 });
             }
             else { // sanity check x-range
-                auto & x_range = elh.value().contains("fit-range-x") 
+                auto & x_range = elh.value().contains("fit-range-x")
                     ? elh.value()["fit-range-x"] : elh.value()["fit-range"];
                 if (!x_range.is_array())
                     throw std::runtime_error("wrong \"fit-range-x\" format, array expected");
-                if (!(x_range[0].is_array() or x_range[0].is_number())) 
+                if (!(x_range[0].is_array() or x_range[0].is_number()))
                     throw std::runtime_error("wrong \"fit-range-x\" format, array of arrays or numbers expected");
 
                 if (x_range[0].is_array()) {
@@ -453,7 +453,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                         _vxr.push_back({r[0],r[1]});
                     }
                 }
-                else _vxr.push_back({x_range[0], x_range[1]}); 
+                else _vxr.push_back({x_range[0], x_range[1]});
             }
 
             // set fit range 1D
@@ -486,7 +486,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                     auto & y_range = elh.value()["fit-range-y"];
                     if (!y_range.is_array())
                         throw std::runtime_error("wrong \"fit-range-y\" format, array expected");
-                    if (!(y_range[0].is_array() or y_range[0].is_number())) 
+                    if (!(y_range[0].is_array() or y_range[0].is_number()))
                         throw std::runtime_error("wrong \"fit-range-y\" format, array of arrays or numbers expected");
 
                     if (y_range[0].is_array()) {
@@ -507,17 +507,17 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                     throw std::runtime_error("Something went wrong with the TH2 ranges");
                 else {
                     // translate ranges in global bin ranges
-                    auto yBinWidth = _current_ds.data->GetYaxis()->GetBinWidth(1);
+                    auto _y_bin_width = _current_ds.data->GetYaxis()->GetBinWidth(1);
                     for (auto x : _vxr) {
                         for (auto y : _vyr) {
-                            auto yPos = y.first;
-                            auto yMax = y.second;
-                            while (yPos <= yMax) {
+                            auto _y_pos = y.first;
+                            auto _y_max = y.second;
+                            while (_y_pos <= _y_max) {
                                 _current_ds.brange.push_back({
-                                    _current_ds.data->FindBin(x.first,yPos),
-                                    _current_ds.data->FindBin(x.second,yPos)
+                                    _current_ds.data->FindBin(x.first,_y_pos),
+                                    _current_ds.data->FindBin(x.second,_y_pos)
                                 });
-                                yPos += yBinWidth;
+                                _y_pos += _y_bin_width;
                                 BCLog::OutDetail("Adding fit range TH2 global [" +
                                     std::to_string(_current_ds.brange.back().first) + ", " +
                                     std::to_string(_current_ds.brange.back().second) + "] (bins)"
@@ -629,7 +629,7 @@ TH1* GerdaFitter::GetFitComponent(std::string filename, std::string objectname, 
                 + filename + "', skipping normalization");
         }
         else _th->Scale(1./_nprim->GetVal());
-        
+
         return _th;
     }
     else if (obj->InheritsFrom(TF1::Class())) {

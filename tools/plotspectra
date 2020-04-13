@@ -126,19 +126,37 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
         TH1 *data, *model, *h;
         if (cl->InheritsFrom(TDirectoryFile::Class())) {
             auto d = dynamic_cast<TDirectoryFile*>(key->ReadObj());
+
+            bool is_th2 = d->Get("fitted_data")->InheritsFrom(TH2::Class());
             data = dynamic_cast<TH1*>(d->Get("fitted_data"));
             model = dynamic_cast<TH1*>(d->Get("total_model"));
-            auto range_low = dynamic_cast<TParameter<double>*>(d->Get("fit_range_lower"));
-            auto range_upp = dynamic_cast<TParameter<double>*>(d->Get("fit_range_upper"));
+
+            TParameter<double>* range_low_x;
+            TParameter<double>* range_upp_x;
+            TParameter<double>* range_low_y;
+            TParameter<double>* range_upp_y;
+
+            if (is_th2) {
+                range_low_x = dynamic_cast<TParameter<double>*>(d->Get("fit_range_lower_x"));
+                range_upp_x = dynamic_cast<TParameter<double>*>(d->Get("fit_range_upper_x"));
+                range_low_y = dynamic_cast<TParameter<double>*>(d->Get("fit_range_lower_y"));
+                range_upp_y = dynamic_cast<TParameter<double>*>(d->Get("fit_range_upper_y"));
+                dynamic_cast<TH2*>(data)->Rebin2D(rebin);
+                dynamic_cast<TH2*>(model)->Rebin2D(rebin);
+            }
+            else {
+                range_low_x = dynamic_cast<TParameter<double>*>(d->Get("fit_range_lower"));
+                range_upp_x = dynamic_cast<TParameter<double>*>(d->Get("fit_range_upper"));
+                data->Rebin(rebin);
+                model->Rebin(rebin);
+
+            }
 
             data->SetFillStyle(3003);
             data->SetLineColorAlpha(kAzure-4, 1);
             data->SetFillColorAlpha(kAzure-4, 1);
             model->SetLineColor(kRed);
-            model->SetLineWidth(2);
-
-            data->Rebin(rebin);
-            model->Rebin(rebin);
+            if (!is_th2) model->SetLineWidth(2);
 
             if (!canvas) {
                 canvas = new TCanvas(Form("c_%i", idx), Form("c_%i", idx), width, height);
@@ -150,22 +168,22 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
                 gPad->SetLeftMargin(0.07);
                 gPad->SetBottomMargin(0.07);
                 gPad->SetTopMargin(0.07);
-                data->GetXaxis()->SetLabelSize(0.05);
-                data->GetYaxis()->SetLabelSize(0.05);
+                // data->GetXaxis()->SetLabelSize(0.05);
+                // data->GetYaxis()->SetLabelSize(0.05);
             }
             canvas->SetMargin(0.04, 0.01, 0.07, 0.07);
 
-            if (bands) {
+            if (bands and !is_th2) {
                 auto resgraph = dynamic_cast<TH1D*>(data->Clone());
                 resgraph->SetMarkerStyle(7);
 
                 if (residuals) resgraph->Divide(model);
-                if (range_low and range_upp) resgraph->GetXaxis()->SetRangeUser(range_low->GetVal(), range_upp->GetVal());
+                if (range_low_x and range_upp_x) resgraph->GetXaxis()->SetRangeUser(range_low_x->GetVal(), range_upp_x->GetVal());
                 resgraph->Draw("P0 HIST");
                 gPad->Update();
 
-                for (int b = resgraph->GetXaxis()->FindBin(range_low->GetVal());
-                         b <= resgraph->GetXaxis()->FindBin(range_upp->GetVal()); ++b) {
+                for (int b = resgraph->GetXaxis()->FindBin(range_low_x->GetVal());
+                         b <= resgraph->GetXaxis()->FindBin(range_upp_x->GetVal()); ++b) {
 
                     draw_poisson_bands(
                         model->GetBinContent(b),
@@ -187,8 +205,11 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
                 l.DrawLine(gPad->GetUxmax(), gPad->GetUymin(), gPad->GetUxmax(), gPad->GetUymax());
             }
             else {
-                data->Draw("hist");
-                if (logy) gPad->SetLogy();
+                if (is_th2) data->Draw("hist 0 lego1");
+                else data->Draw("hist");
+
+                if (logy and  is_th2) gPad->SetLogz();
+                if (logy and !is_th2) gPad->SetLogy();
                 // draw comp
                 TIter nextt(d->GetListOfKeys());
                 TKey* keyy;
@@ -197,13 +218,27 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
                     if (cll->InheritsFrom(TH1::Class())) {
                         h = dynamic_cast<TH1*>(keyy->ReadObj());
                         h->SetLineColor(kGray+1);
-                        h->Rebin(rebin);
-                        h->Draw("hist same");
+                        if (is_th2) {
+                            dynamic_cast<TH2*>(h)->Rebin2D(rebin);
+                            h->Draw("hist same 0 lego1");
+                        }
+                        else {
+                            h->Rebin(rebin);
+                            h->Draw("hist same");
+                        }
                     }
                 }
-                if (range_low and range_upp) data->GetXaxis()->SetRangeUser(range_low->GetVal(), range_upp->GetVal());
-                data->Draw("hist same");
-                model->Draw("hist same");
+                if (range_low_x and range_upp_x) data->GetXaxis()->SetRangeUser(range_low_x->GetVal(), range_upp_x->GetVal());
+                if (range_low_y and range_upp_y) data->GetYaxis()->SetRangeUser(range_low_y->GetVal(), range_upp_y->GetVal());
+
+                if (is_th2) {
+                    data->Draw("hist 0 lego1 same");
+                    model->Draw("hist 0 lego1 same");
+                }
+                else {
+                    data->Draw("hist same");
+                    model->Draw("hist same");
+                }
             }
         }
 
