@@ -1049,8 +1049,8 @@ void GerdaFitter::PrintShortMarginalizationSummary() {
     for (size_t i = 0; i < this->GetNParameters(); ++i) {
         bool isfixed = this->GetParameter(i).Fixed();
         auto val  = Form("%.*g", 2, isfixed ? this->GetParameter(i).GetFixedValue() : this->GetMarginalized(i).GetLocalMode());
-        auto err1 = Form("%.*g", 2, isfixed ? 0 : this->GetMarginalized(i).GetQuantile(0.16));
-        auto err2 = Form("%.*g", 2, isfixed ? 0 : this->GetMarginalized(i).GetQuantile(1-0.16));
+        auto err1 = Form("%.*g", 2, isfixed ? 0 : this->GetMarginalized(i).GetLocalMode() - this->GetMarginalized(i).GetQuantile(0.16));
+        auto err2 = Form("%.*g", 2, isfixed ? 0 : this->GetMarginalized(i).GetQuantile(0.84) - this->GetMarginalized(i).GetLocalMode());
         line = Form("    │ [%2i] %-*s │ %7s + %-7s - %-7s │",
                 int(i),
                 maxnamelength,
