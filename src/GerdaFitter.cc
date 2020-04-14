@@ -840,9 +840,9 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
     TFile tf(filename.c_str(), "recreate");
     // define parameters
     auto par_name = new std::string;
-    float marg_mode;
-    float marg_qt16, marg_qt84, marg_qt90;
-    float glob_mode, glob_mode_error;
+    double marg_mode;
+    double marg_qt16, marg_qt84, marg_qt90;
+    double glob_mode, glob_mode_error;
     // build results tree
     TTree tt("fit_par_results", "Results of the fitting procedure");
     tt.Branch("par_name",          par_name);
@@ -1051,13 +1051,32 @@ void GerdaFitter::PrintShortMarginalizationSummary() {
         auto val  = Form("%.*g", 2, isfixed ? this->GetParameter(i).GetFixedValue() : this->GetMarginalized(i).GetLocalMode());
         auto err1 = Form("%.*g", 2, isfixed ? 0 : this->GetMarginalized(i).GetLocalMode() - this->GetMarginalized(i).GetQuantile(0.16));
         auto err2 = Form("%.*g", 2, isfixed ? 0 : this->GetMarginalized(i).GetQuantile(0.84) - this->GetMarginalized(i).GetLocalMode());
-        line = Form("    │ [%2i] %-*s │ %7s + %-7s - %-7s │",
+        auto qt90 = Form("%.*g", 2, isfixed ? 0 : this->GetMarginalized(i).GetQuantile(0.90));
+        if (isfixed) {
+            line = Form("    │ [%2i] %-*s │ %7s (fixed)             │",
+                int(i),
+                maxnamelength,
+                this->GetVariable(i).GetName().data(),
+                val
+            );
+        }
+        else if (this->GetMarginalized(i).GetLocalMode() > this->GetMarginalized(i).GetQuantile(0.84) or
+                 this->GetMarginalized(i).GetQuantile(0.16) > this->GetMarginalized(i).GetLocalMode() ) {
+            line = Form("    │ [%2i] %-*s │ < %7s (90%%C.L.)         │",
+                int(i),
+                maxnamelength,
+                this->GetVariable(i).GetName().data(),
+                qt90
+             );
+        }
+        else {
+            line = Form("    │ [%2i] %-*s │ %7s + %-7s - %-7s │",
                 int(i),
                 maxnamelength,
                 this->GetVariable(i).GetName().data(),
                 val, err2, err1
-        );
-        if (isfixed) line += " (fixed)";
+            );
+        }
         BCLog::OutSummary(line);
     }
     line = "    └"; for (int i = 0; i < maxnamelength+7; ++i) line += "─"; line += "┴─────────────────────────────┘";
