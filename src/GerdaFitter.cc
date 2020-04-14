@@ -464,17 +464,17 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                 else {
                     for (auto x : _vxr) {
                         // no under or overflow bins allowed
-                        while (_current_ds.data->IsBinUnderflow(x.first,1)) x.first++;
-                        while (_current_ds.data->IsBinOverflow(x.second,1)) x.second--;
-                        _current_ds.brange.push_back({
-                            _current_ds.data->FindBin(x.first),
-                            _current_ds.data->FindBin(x.second)
-                        });
+                        auto _x_ll = _current_ds.data->FindBin(x.first);
+                        auto _x_ul = _current_ds.data->FindBin(x.second);
+                        while (_x_ll <= 0)                            _x_ll++;
+                        while (_x_ul > _current_ds.data->GetNbinsX()) _x_ul--;
+                        _current_ds.brange.push_back({_x_ll,_x_ul});
                         BCLog::OutDetail("Adding fit range x [" +
                             std::to_string(_current_ds.brange.back().first) + ", " +
                             std::to_string(_current_ds.brange.back().second) + "] (bins) [" +
-                            std::to_string(x.first) + ", " +
-                            std::to_string(x.second) + "] (x-units)"
+                            std::to_string(_current_ds.data->GetBinLowEdge(_x_ll)) + ", " +
+                            std::to_string(_current_ds.data->GetBinLowEdge(_x_ul) + _current_ds.data->GetBinWidth(_x_ul))
+                            + "] (x-units)"
                         );
                     }
                 }
@@ -517,26 +517,32 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                     auto _y_bin_width = _current_ds.data->GetYaxis()->GetBinWidth(1);
                     for (auto x : _vxr) {
                         // no under or overflow bins allowed
-                        while (_current_ds.data->IsBinUnderflow(x.first,1)) x.first++;
-                        while (_current_ds.data->IsBinOverflow(x.second,1)) x.second--;
+                        auto _x_ll = _current_ds.data->GetXaxis()->FindBin(x.first);
+                        auto _x_ul = _current_ds.data->GetXaxis()->FindBin(x.second);
+                        while (_x_ll <= 0)                            _x_ll++;
+                        while (_x_ul > _current_ds.data->GetNbinsX()) _x_ul--;
                         for (auto y : _vyr) {
                             // no under or overflow bins allowed
-                            while (_current_ds.data->IsBinUnderflow(y.first,2)) y.first++;
-                            while (_current_ds.data->IsBinOverflow(y.second,2)) y.second--;
-                            auto _y_pos = y.first;
-                            auto _y_max = y.second;
-                            while (_y_pos <= _y_max) {
+                            auto _y_ll = _current_ds.data->GetYaxis()->FindBin(y.first);
+                            auto _y_ul = _current_ds.data->GetYaxis()->FindBin(y.second);
+                            while (_y_ll <= 0)                            _y_ll++;
+                            while (_y_ul > _current_ds.data->GetNbinsY()) _y_ul--;
+                            while (_y_ll <= _y_ul) {
                                 _current_ds.brange.push_back({
-                                    _current_ds.data->FindBin(x.first,_y_pos),
-                                    _current_ds.data->FindBin(x.second,_y_pos)
+                                    _current_ds.data->FindBin(_x_ll,_y_ll),
+                                    _current_ds.data->FindBin(_x_ul,_y_ll)
                                 });
-                                _y_pos += _y_bin_width;
                                 BCLog::OutDetail("Adding fit range TH2 global [" +
                                     std::to_string(_current_ds.brange.back().first) + ", " +
                                     std::to_string(_current_ds.brange.back().second) + "] (bins) [" +
-                                    std::to_string(x.first) + ", " + std::to_string(x.second) + " : " +
-                                    std::to_string(_y_pos) + "] (x-units:y-units)"
+                                    std::to_string(_current_ds.data->GetXaxis()->GetBinLowEdge(_x_ll)) + ", " +
+                                    std::to_string(_current_ds.data->GetXaxis()->GetBinLowEdge(_x_ul) +
+                                    _current_ds.data->GetXaxis()->GetBinWidth(_x_ul)) + " : " +
+                                    std::to_string(_current_ds.data->GetYaxis()->GetBinLowEdge(_y_ll)) + ", " +
+                                    std::to_string(_current_ds.data->GetYaxis()->GetBinLowEdge(_y_ll) + _y_bin_width) +
+                                    "] (x-units:y-units)"
                                 );
+                                _y_ll += _y_bin_width;
                             }
                         }
                     }
@@ -784,6 +790,7 @@ void GerdaFitter::SaveHistograms(std::string filename) {
 
         // write fit range
         if (it.data->GetDimension() == 1) {
+            BCLog::OutDetail("Writing fit range 1D dataset to file");
             TParameter<double> range_low("fit_range_lower", it.data->GetBinLowEdge(it.brange[0].first));
             TParameter<double> range_upp("fit_range_upper", it.data->GetBinLowEdge(it.brange.back().second)
                 + it.data->GetBinWidth(it.brange.back().second));
@@ -792,6 +799,7 @@ void GerdaFitter::SaveHistograms(std::string filename) {
         }
         // for TH2 write y-range
         if (it.data->GetDimension() == 2) {
+            BCLog::OutDetail("Writing fit range 2D dataset to file");
             int binx_low, binx_up, biny, binz;
             it.data->GetBinXYZ(it.brange[0].first, binx_low, biny, binz);
             it.data->GetBinXYZ(it.brange.back().second, binx_up, biny, binz);
@@ -963,7 +971,7 @@ double GerdaFitter::GetFastPValue(const std::vector<double>& parameters, long ni
             auto hcopy = dynamic_cast<TH1*>(h.second->Clone());
             hcopy->Scale(parameters[h.first]);
             // compute total model
-            if (!sum) sum = dynamic_cast<TH1*>(hcopy);
+            if (!sum) sum = dynamic_cast<TH1*>(hcopy->Clone());
             else      sum->Add(hcopy);
             delete hcopy;
         }
