@@ -1,0 +1,237 @@
+{
+    "id" : "phIIp-raw-kmodel_2D",
+    "logging" : "summary",
+    "precision" : "kMedium",
+    "output-dir" : "../../../results/phIIp-raw-kmodel_2D",
+    "global-mode-search" : {
+        "method" : "kOptMinuit"
+    },
+    "integration" : {
+        "enabled" : false,
+        "method" : "kIntCuba",
+        "cuba-method" : "kCubaDivonne",
+        "integrator-settings" : {
+            "kIntCuba" : {
+                "kCubaDivonne" : {
+                    "niter-max" : 1E07,
+                    "niter-min" : 0,
+                    "flags" : 0
+                }
+            }
+        }
+    },
+    "p-value" : {
+        "enabled" : false,
+        "iterations" : 1E07
+    },
+    "fit" : {
+        "parameters" : {
+            "K40-cables" : {
+                "range" : [0, 1e6],
+                "long-name" : "^{40}K - cables",
+                "units" : "cts"
+            },
+            "K40-minishroud" : {
+                "range" : [0, 1e6],
+                "long-name" : "^{40}K - minishroud",
+                "units" : "cts"
+            },
+            "K40-inner_fibers" : {
+                "range" : [0, 1e6],
+                "long-name" : "^{40}K - inner fibers",
+                "units" : "cts"
+            },
+            "K42-lar" : {
+                "range" : [0, 1e8],
+                "long-name" : "^{42}K - lar homogeneous",
+                "units" : "cts"
+            },
+            "K42-lar_above" : {
+                "range" : [0, 3e7],
+                "long-name" : "^{42}K - lar above array",
+                "units" : "cts"
+            },
+            "Bi214-cables" : {
+                "range" : [0, 2e5],
+                "long-name" : "^{214}Bi - cables",
+                "units" : "cts"
+            }
+        },
+        "theoretical-expectations" : {
+
+
+
+            "../../../data/gerda-data-bkgmodel-phaseIIplus-v06.12.root" : {
+                "raw/M2_ID1vsID2_1461" : {
+                    "gerda-pdfs" : "../../../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "fit-range-x" : [0, 41], "rebin-factor" : 1,
+                    "fit-range-y" : [0, 41], "rebin-factor-y" : 1,
+                    "components" : [
+                        {
+                            "part": "cables/cables_all",
+                            "components" : {
+                                "K40-cables" : {
+                                    "isotope" : "K40"
+                                },
+                                "Bi214-cables" : {
+                                    "isotope" : "Bi214"
+                                }
+                            }
+                        },
+                        {
+                            "part": "minishroud/ms_all",
+                            "components" : {
+                                "K40-minishroud" : {
+                                    "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
+                            "part": "larveto/inner_fibers",
+                            "components" : {
+                                "K40-inner_fibers" : {
+                                    "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
+                            "part": "lar/sur_array",
+                            "components" : {
+                                "K42-lar" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "lar/above_array",
+                            "components" : {
+                                "K42-lar_above" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "raw/M2_ID1vsID2_1525" : {
+                    "gerda-pdfs" : "../../../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "fit-range-x" : [0, 41], "rebin-factor" : 1,
+                    "fit-range-y" : [0, 41], "rebin-factor-y" : 1,
+                    "components" : [
+                        {
+                            "part": "lar/sur_array",
+                            "components" : {
+                                "K42-lar" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "lar/above_array",
+                            "components" : {
+                                "K42-lar_above" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "raw/M2_ID1vsID2_S1" : {
+                    "gerda-pdfs" : "../../../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "fit-range-x" : [0, 41], "rebin-factor" : 1,
+                    "fit-range-y" : [0, 41], "rebin-factor-y" : 1,
+                    "components" : [
+                        {
+                            "part": "cables/cables_all",
+                            "components" : {
+                                "K40-cables" : {
+                                    "isotope" : "K40"
+                                },
+                                "Bi214-cables" : {
+                                    "isotope" : "Bi214"
+                                }
+                            }
+                        },
+                        {
+                            "part": "minishroud/ms_all",
+                            "components" : {
+                                "K40-minishroud" : {
+                                    "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
+                            "part": "larveto/inner_fibers",
+                            "components" : {
+                                "K40-inner_fibers" : {
+                                    "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
+                            "part": "lar/sur_array",
+                            "components" : {
+                                "K42-lar" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "lar/above_array",
+                            "components" : {
+                                "K42-lar_above" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "raw/M2_ID1vsID2_S2" : {
+                    "gerda-pdfs" : "../../../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "fit-range-x" : [0, 41], "rebin-factor" : 1,
+                    "fit-range-y" : [0, 41], "rebin-factor-y" : 1,
+                    "components" : [
+                        {
+                            "part": "lar/sur_array",
+                            "components" : {
+                                "K42-lar" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "lar/above_array",
+                            "components" : {
+                                "K42-lar_above" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "raw/M2_ID1vsID2_S3" : {
+                    "gerda-pdfs" : "../../../data/gerda-pdfs/ph2p-v1.0-rc",
+                    "fit-range-x" : [0, 41], "rebin-factor" : 1,
+                    "fit-range-y" : [0, 41], "rebin-factor-y" : 1,
+                    "components" : [
+                        {
+                            "part": "lar/sur_array",
+                            "components" : {
+                                "K42-lar" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "lar/above_array",
+                            "components" : {
+                                "K42-lar_above" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

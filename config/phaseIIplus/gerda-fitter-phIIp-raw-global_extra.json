@@ -274,6 +274,22 @@
                             }
                         },
                         {
+                            "part": "gedet/nplus_semicoax",
+                            "components": {
+                                "K42-nplus-semicoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_bege",
+                            "components": {
+                                "K42-nplus-bege" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
                             "part": "gedet/pplus_invcoax",
                             "components": {
                                 "Pb214Bi214-pplus-invcoax" : {
@@ -368,6 +384,22 @@
                             "part": "gedet/nplus_bege",
                             "components": {
                                 "K42-nplus-bege" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_invcoax",
+                            "components": {
+                                "K42-nplus-invcoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_semicoax",
+                            "components": {
+                                "K42-nplus-semicoax" : {
                                     "isotope" : "K42"
                                 }
                             }
@@ -472,6 +504,22 @@
                             }
                         },
                         {
+                            "part": "gedet/nplus_bege",
+                            "components": {
+                                "K42-nplus-bege" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_invcoax",
+                            "components": {
+                                "K42-nplus-invcoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
                             "part": "gedet/pplus_semicoax",
                             "components": {
                                 "Pb214Bi214-pplus-semicoax" : {
@@ -525,6 +573,30 @@
                                 },
                                 "K40-central-fiber-shroud" : {
                                     "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_semicoax",
+                            "components": {
+                                "K42-nplus-semicoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_bege",
+                            "components": {
+                                "K42-nplus-bege" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_invcoax",
+                            "components": {
+                                "K42-nplus-invcoax" : {
+                                    "isotope" : "K42"
                                 }
                             }
                         },
