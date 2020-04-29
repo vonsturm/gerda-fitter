@@ -1,5 +1,5 @@
 Bootstrap: library
-From: gipert/default/bat:latest
+From: gipert/default/bat:1.0.0
 
 %files
     src /opt/src/gerda-fitter
