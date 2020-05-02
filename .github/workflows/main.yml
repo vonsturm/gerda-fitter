@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build gerda-fitter executable
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        container_version: [1.0.0-root_v6.08.08, 1.0.0-root_v6.12.06, 1.0.0-root_v6.14.06, 1.0.0-root_v6.18.02, 1.0.0-root_v6.20.02, 1.0.0]
+        
+    container: docker://gipert/bat:${{ matrix.container_version }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build gerda-fitter executable with BAT ${{ matrix.container_version }}
+      run: |
+        cd src
+        make
