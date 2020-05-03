@@ -2,19 +2,19 @@
     "id" : "phII-raw-global_lowenergy",
     "logging" : "summary",
     "precision" : "kMedium",
-    "output-dir" : "../../results/phII-raw-global_lowenergy",
+    "output-dir" : "../../../results/phII-raw-global_lowenergy",
     "global-mode-search" : {
         "method" : "kOptMinuit"
     },
     "fit" : {
         "parameters" : {
             "alpha-slope-bege" : {
-                "range" : [2E-5, 1E-4],
+                "range" : [2E-5, 3E-4],
                 "long-name" : "#alpha-model BEGe - slope",
                 "units" : "cts"
             },
             "alpha-offset-bege" : {
-                "range" : [0, 1E-1],
+                "range" : [0, 6E-1],
                 "long-name" : "#alpha-model BEGe - offset",
                 "units" : "cts"
             },
@@ -76,9 +76,9 @@
             }
         },
         "theoretical-expectations" : {
-            "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
+            "../../../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
                 "M1_enrBEGe" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
+                    "gerda-pdfs" : "../../../data/gerda-pdfs/v2.4",
                     "fit-range" : [[200, 505], [515, 2014], [2064, 5250]],
                     "rebin-factor" : 5,
                     "components" : [
@@ -93,7 +93,7 @@
                             }
                         },
                         {
-                            "root-file" : "../data/bkg-alpha-enrBEGe-results.root",
+                            "root-file" : "../../../data/bkg-alpha-enrBEGe-results.root",
                             "components" : {
                                 "alpha-high-energy-bege" : {
                                     "hist-name" : "alpha_model/highenergy_all_enrBEGe"

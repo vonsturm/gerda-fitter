@@ -2,7 +2,7 @@
     "id" : "phII-raw-Ar39-enrBEGe",
     "logging" : "summary",
     "precision" : "kMedium",
-    "output-dir" : "../results",
+    "output-dir" : "../../../results/phII-raw-Ar39-enrBEGe",
     "global-mode-search" : {
         "method" : "kOptMinuit"
     },
@@ -41,10 +41,10 @@
             }
         },
         "theoretical-expectations" : {
-            "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
+            "../../../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
                 "M1_enrBEGe" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/2nufit/2nufit-best",
-                    "fit-range" : [170, 565],
+                    "gerda-pdfs" : "../../../data/gerda-pdfs/v2.4",
+                    "fit-range" : [[170, 505], [515, 565]],
                     "rebin-factor" : 5,
                     "components" : [
                         {

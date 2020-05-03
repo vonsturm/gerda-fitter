@@ -1,8 +1,8 @@
 {
     "id" : "phII-raw-Ar39-enrBEGe_fixed",
-    "logging" : "summary",
+    "logging" : "debug",
     "precision" : "kMedium",
-    "output-dir" : "../results",
+    "output-dir" : "../../../results/phII-raw-Ar39-enrBEGe_fixed",
     "global-mode-search" : {
         "method" : "kOptMinuit"
     },
@@ -73,9 +73,9 @@
             }
         },
         "theoretical-expectations" : {
-            "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
+            "../../../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : {
                 "M1_enrBEGe" : {
-                    "gerda-pdfs" : "../data/gerda-pdfs/v2.2",
+                    "gerda-pdfs" : "../../../data/gerda-pdfs/v2.4",
                     "fit-range" : [[40, 2014], [2064, 5250]],
                     "rebin-factor" : 5,
                     "components" : [
@@ -90,7 +90,7 @@
                             }
                         },
                         {
-                            "root-file" : "../data/bkg-alpha-enrBEGe-results.root",
+                            "root-file" : "../../../data/bkg-alpha-enrBEGe-results.root",
                             "components" : {
                                 "alpha-high-energy-bege" : {
                                     "hist-name" : "alpha_model/highenergy_all_enrBEGe"
