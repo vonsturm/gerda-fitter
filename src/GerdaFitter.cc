@@ -534,7 +534,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                 long unsigned int _ds_number = 0;
                 if (el.value()["scale-with-pdf-integral"].contains("dataset")) {
                     std::string _dataset = SafeROOTName(
-                        "_" + el.value()["scale-factor"]["dataset"].get<std::string>()
+                        "_" + el.value()["scale-with-pdf-integral"]["dataset"].get<std::string>()
                     );
                     for (auto _ds : this->data) {
                         std::string _ds_name = _ds.data->GetName();
@@ -556,25 +556,34 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                 }
                 // for each parameter in formula now calculate integral and substitute
                 // all parameters are already checked and exist
+                BCLog::OutDebug("In observable TFormula scaling parameters : ");
+                std::string _expr_ = _tformula.GetExpFormula().Data();
+                BCLog::OutDebug(" ┌ original formula : " + _expr_);
                 for (int p = 0; p < _tformula.GetNpar(); ++p) {
-                    std::string parname = _tformula.GetParName(p);
-                    for (unsigned int idx = 0; idx < this->GetNParameters(); ++idx) {
-                        if (this->GetParameters().At(idx).GetName() == parname) {
-                            double integral = IntegrateHistogram(this->data[_ds_number].comp[idx], _scale_range);
-                            auto _pos = _expr.find(parname)-1;
-                            auto _len = parname.size()+2;
-                            _expr.replace(_pos,_len,Form("(%.5e*[%s])",integral,parname.c_str()));
-                            break;
-                        }
-                    }
+                    std::string parname = std::string("[") + _tformula.GetParName(p) + "]";
+                    int idx = std::stoi(_tformula.GetParName(p));
+                    double integral = IntegrateHistogram(this->data[_ds_number].comp[idx], _scale_range);
+                    auto _pos = _expr_.find(parname);
+                    auto _len = parname.size();
+                    _expr_.replace(_pos,_len,Form("(%.5e*%s)",integral,parname.c_str()));
+                    if (p == _tformula.GetNpar()-1)
+                         BCLog::OutDebug(" └─ " + parname + " -> " + Form("(%.5e*%s)",integral,parname.c_str()));
+                    else BCLog::OutDebug(" ├─ " + parname + " -> " + Form("(%.5e*%s)",integral,parname.c_str()));
                 }
                 // update TFormula
-                _tformula = TFormula(el.key().c_str(), _expr.c_str());
+                _tformula = TFormula(el.key().c_str(), _expr_.c_str());
+                // need to reset parameter names because ROOT is stupid
+                for (int p = 0; p < _tformula.GetNpar(); ++p) {
+                    std::string parname = _tformula.GetParName(p);
+                    // delete the p in front of the parameter name
+                    parname.erase(0,1); 
+                    _tformula.SetParName(p, parname.c_str());
+                }
             }
 
             BCLog::OutDetail("adding observable '" + el.key() + "' (\""
                 + el.value().value("long-name", "") + "\" [" + el.value().value("units", "")
-                + "]) with TFormula = \"" + _expr + "\" in range = ["
+                + "]) with TFormula = \"" + _tformula.GetExpFormula().Data() + "\" in range = ["
                 + std::to_string(el.value()["range"][0].get<double>()) + ","
                 + std::to_string(el.value()["range"][1].get<double>()) + "]");
 
