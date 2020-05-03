@@ -890,14 +890,25 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
 
     for (unsigned int p = 0; p < this->GetNParameters(); p++) {
         BCLog::OutDebug("Writing Parameter " + this->GetVariable(p).GetName() + " to tree");
-        auto bch_marg = this->GetMarginalized(p);
+        bool isfixed = this->GetParameter(p).Fixed();
         par_name = std::string(this->GetVariable(p).GetName().data());
-        marg_mode = bch_marg.GetLocalMode();
-        marg_qt16 = bch_marg.GetQuantile(0.16);
-        marg_qt84 = bch_marg.GetQuantile(0.84);
-        marg_qt90 = bch_marg.GetQuantile(0.90);
-        glob_mode = this->GetBestFitParameters()[p];
-        glob_mode_error = this->GetBestFitParameterErrors()[p];
+        if (!isfixed) {
+            auto bch_marg = this->GetMarginalized(p);
+            marg_mode = bch_marg.GetLocalMode();
+            marg_qt16 = bch_marg.GetQuantile(0.16);
+            marg_qt84 = bch_marg.GetQuantile(0.84);
+            marg_qt90 = bch_marg.GetQuantile(0.90);
+            glob_mode = this->GetBestFitParameters()[p];
+            glob_mode_error = this->GetBestFitParameterErrors()[p];
+        }
+        else {
+            marg_mode = this->GetParameter(p).GetFixedValue();
+            marg_qt16 = 0;
+            marg_qt84 = 0;
+            marg_qt90 = 0;
+            glob_mode = this->GetParameter(p).GetFixedValue();
+            glob_mode_error = 0;
+        }
         tt.Fill();
     }
     tt.Write();
@@ -933,8 +944,9 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
         for (auto c : ds.comp) {
             comp_name = std::string(this->GetVariable(c.first).GetName().data());
             auto & ch = c.second;
-            double best    = this->GetBestFitParameters()[c.first];
-            double bestErr = this->GetBestFitParameterErrors()[c.first];
+            bool isfixed   = this->GetParameter(c.first).Fixed();
+            double best    = isfixed ? this->GetParameter(c.first).GetFixedValue() : this->GetBestFitParameters()[c.first];
+            double bestErr = isfixed ? 0 : this->GetBestFitParameterErrors()[c.first];
             auto bch_marg  = this->GetMarginalized(c.first);
             orig_range = 0.;
             for (auto r : ds.brange) {
@@ -942,10 +954,10 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
             }
             best_range    = orig_range*best;
             bestErr_range = orig_range*bestErr;
-            marg_range    = orig_range*bch_marg.GetLocalMode();
-            qt16_range    = marg_range - orig_range*bch_marg.GetQuantile(0.16);
-            qt84_range    = orig_range*bch_marg.GetQuantile(0.84) - marg_range;
-            qt90_range    = orig_range*bch_marg.GetQuantile(0.90);
+            marg_range    = orig_range*(isfixed ? this->GetParameter(c.first).GetFixedValue() : bch_marg.GetLocalMode());
+            qt16_range    = isfixed ? 0 : marg_range - orig_range*bch_marg.GetQuantile(0.16);
+            qt84_range    = isfixed ? 0 : orig_range*bch_marg.GetQuantile(0.84) - marg_range;
+            qt90_range    = isfixed ? 0 : orig_range*bch_marg.GetQuantile(0.90);
             orig_bi = 0., best_bi = 0., bestErr_bi = 0.;
             if (!ds.data->InheritsFrom(TH2::Class())) {
                 std::vector<int> bins = { // BI window
@@ -963,10 +975,10 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
                 orig_bi += ch->Integral(bins[4], bins[5]);
                 best_bi    = orig_bi*best;
                 bestErr_bi = orig_bi*bestErr;
-                marg_bi    = orig_bi*bch_marg.GetLocalMode();
-                qt16_bi    = orig_bi*bch_marg.GetQuantile(0.16);
-                qt84_bi    = orig_bi*bch_marg.GetQuantile(0.84);
-                qt90_bi    = orig_bi*bch_marg.GetQuantile(0.90);
+                marg_bi    = orig_bi*(isfixed ? this->GetParameter(c.first).GetFixedValue() : bch_marg.GetLocalMode());
+                qt16_bi    = isfixed ? 0 : orig_bi*bch_marg.GetQuantile(0.16);
+                qt84_bi    = isfixed ? 0 : orig_bi*bch_marg.GetQuantile(0.84);
+                qt90_bi    = isfixed ? 0 : orig_bi*bch_marg.GetQuantile(0.90);
             }
             ttds.Fill();
         }
@@ -1198,17 +1210,21 @@ std::vector<std::pair<double,double>> GerdaFitter::CheckAndStoreRanges(BasicJson
     return _v_range;
 }
 
-std::vector<std::pair<int,int>> GerdaFitter::TranslateAxisRangeToBinRange(TH1* h,
-    std::vector<std::pair<double,double>> x_range, std::vector<std::pair<double,double>> y_range)
-{
+std::vector<std::pair<int,int>> GerdaFitter::TranslateAxisRangeToBinRange(
+    TH1* /*h*/,
+    std::vector<std::pair<double,double>> /*x_range*/,
+    std::vector<std::pair<double,double>> /*y_range*/
+) {
     BCLog::OutSummary("Implement me : TranslateAxisRangeToBinRange");
     std::vector<std::pair<int,int>> _b_range;
     return _b_range;
 }
 
-double GerdaFitter::IntegrateHistogram(TH1* h, std::vector<std::pair<double,double>> x_range,
-    std::vector<std::pair<double,double>> y_range)
-{
+double GerdaFitter::IntegrateHistogram(
+    TH1* h,
+    std::vector<std::pair<double,double>> x_range,
+    std::vector<std::pair<double,double>> y_range
+) {
     if (h->GetDimension() > 2) {
         throw std::runtime_error("IntegrateHistogram not implemeted for TH3.");
     }
@@ -1238,8 +1254,11 @@ double GerdaFitter::IntegrateHistogram1D(TH1* h, std::vector<std::pair<double,do
     return integral;
 }
 
-double GerdaFitter::IntegrateHistogram2D(TH2* h, std::vector<std::pair<double,double>> x_range,
-    std::vector<std::pair<double,double>> y_range)
+double GerdaFitter::IntegrateHistogram2D(
+    TH2* /*h*/,
+    std::vector<std::pair<double,double>> /*x_range*/,
+    std::vector<std::pair<double,double>> /*y_range*/
+)
 { 
     BCLog::OutSummary("Implement me : IntegrateHistogram::TH2");
     return 0;

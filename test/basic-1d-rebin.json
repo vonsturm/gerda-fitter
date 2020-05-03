@@ -28,7 +28,7 @@
             "data/data.root" : {
                 "h_data" : {
                     "fit-range" : [0, 100],
-                    "rebin-factor" : 1,
+                    "rebin-factor" : 5,
                     "components" : [
                         {
                             "root-file" : "data/data.root",

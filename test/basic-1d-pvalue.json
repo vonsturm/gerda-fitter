@@ -6,6 +6,10 @@
     "global-mode-search" : {
         "method" : "kOptMinuit"
     },
+    "p-value": {
+        "enabled" : true,
+        "iterations" : 1E4
+    },
     "fit" : {
         "parameters" : {
             "signal-1" : {
