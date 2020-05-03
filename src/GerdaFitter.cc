@@ -491,6 +491,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
      */
 
     if (config.contains("observables")) {
+        BCLog::OutDebug("Parsing 'observables' section");
         for (auto& el : config["observables"].items()) {
             // sanity checks
             auto _expr = el.value()["TFormula"].get<std::string>();
@@ -521,6 +522,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
             // if requested substitute all parameters with :
             // <integral-range> X <parameter> in formula
             if (el.value().contains("scale-with-pdf-integral")) {
+                BCLog::OutDebug("asked to scale observable '" + el.key() + "' with PDF integral");
                 // get range
                 std::vector<std::pair<double,double>> _scale_range;
                 if (el.value()["scale-with-pdf-integral"].contains("range"))

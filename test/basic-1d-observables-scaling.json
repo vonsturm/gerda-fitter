@@ -1,5 +1,5 @@
 {
-    "id" : "basic-1d",
+    "id" : "basic-1d-observables-scaling",
     "logging" : "debug",
     "precision" : "kMedium",
     "output-dir" : "results",
@@ -7,15 +7,17 @@
         "method" : "kOptMinuit"
     },
     "observables" : {
-        "TFormula" : "[bkg-1]/20",
-        "scale-with-pdf-integral" : {
-            "range" : [[10,19],[80,89]],
-            "dataset" : "raw/M1_enrBEGe"
-        },
-        "range" : [0, 0.05],
-        "long-name" : "background in range [[10,20],[80,90]]",
-        "units" : "cts/keV"
-    }
+        "bkg-in-range" : {
+            "TFormula" : "[bkg-1]/20",
+            "scale-with-pdf-integral" : {
+                "range" : [[10,19], [80,89]],
+                "dataset" : "h_data"
+            },
+            "range" : [0, 0.05],
+            "long-name" : "background in range [[10,20], [80,90]]",
+            "units" : "cts/x-unit"
+        }
+    },
     "fit" : {
         "parameters" : {
             "signal-1" : {
