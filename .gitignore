@@ -1,6 +1,7 @@
 gerda-fitter
 results
-data
+/data
+*.root
 *.sif
 
 # junk

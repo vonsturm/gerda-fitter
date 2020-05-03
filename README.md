@@ -1,6 +1,6 @@
 <img src=".github/gerda-logo.png" align="left"  height="80"/>
 
-# gerda-fitter
+# gerda-fitter ![CI](https://github.com/gipert/gerda-fitter/workflows/CI/badge.svg)
 
 A fully JSON-configurable bayesian fitting engine (based on
 [BAT](https://github.com/bat/bat) and
