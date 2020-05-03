@@ -27,7 +27,7 @@
         "theoretical-expectations" : {
             "data/data.root" : {
                 "h_data" : {
-                    "fit-range" : [0, 100],
+                    "fit-range" : [[0, 40], [50, 100]],
                     "rebin-factor" : 1,
                     "components" : [
                         {
