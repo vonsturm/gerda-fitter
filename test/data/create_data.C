@@ -1,5 +1,7 @@
 void create_data() {
 
+    TFile tf("data.root", "recreate");
+
     std::pair<double,double> range = {0, 100};
     int nbins = 100;
 
@@ -21,11 +23,11 @@ void create_data() {
     for (int i = 1; i <= h_f3.GetNbinsX(); ++i) h_f3.SetBinContent(i, f3.Eval(h_f3.GetBinCenter(i)));
     for (int i = 1; i <= h_f1_prior.GetNbinsX(); ++i) h_f1_prior.SetBinContent(i, f1_prior.Eval(h_f1_prior.GetBinCenter(i)));
 
+    gRandom->SetSeed(0);
     h_data.FillRandom("f1", 200);
     h_data.FillRandom("f2", 150);
     h_data.FillRandom("f3", 300);
 
-    TFile tf("data.root", "recreate");
     f1.Write();
     f2.Write();
     f3.Write();
@@ -34,4 +36,22 @@ void create_data() {
     h_f3.Write();
     h_f1_prior.Write();
     h_data.Write();
+
+    TF1 f4("f4", "gaus", range.first, range.second); f4.SetParameters(1, 50, 3);
+    TF1 f5("f5", "[0]*exp([1]*x)", range.first, range.second); f5.SetParameters(1, -0.03);
+
+    TH1D h_data_2("h_data_2", "Test Data", nbins, range.first, range.second);
+    TH1D h_f4("h_f4", "Gauss 2", nbins, range.first, range.second);
+    TH1D h_f5("h_f5", "Exp 1", nbins, range.first, range.second);
+
+    for (int i = 1; i <= h_f4.GetNbinsX(); ++i) h_f4.SetBinContent(i, f4.Eval(h_f4.GetBinCenter(i)));
+    for (int i = 1; i <= h_f5.GetNbinsX(); ++i) h_f5.SetBinContent(i, f5.Eval(h_f5.GetBinCenter(i)));
+
+    h_data_2.FillRandom("f3", 300);
+    h_data_2.FillRandom("f4", 200);
+    h_data_2.FillRandom("f5", 5000);
+
+    h_data_2.Write();
+    h_f4.Write();
+    h_f5.Write();
 }
