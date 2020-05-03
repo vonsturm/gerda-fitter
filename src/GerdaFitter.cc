@@ -566,9 +566,9 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                     auto _pos = _expr_.find(parname);
                     auto _len = parname.size();
                     _expr_.replace(_pos,_len,Form("(%.5e*%s)",integral,parname.c_str()));
-                    if (p == _tformula.GetNpar()-1)
-                         BCLog::OutDebug(" └─ " + parname + " -> " + Form("(%.5e*%s)",integral,parname.c_str()));
-                    else BCLog::OutDebug(" ├─ " + parname + " -> " + Form("(%.5e*%s)",integral,parname.c_str()));
+                    auto msg = (p == _tformula.GetNpar()-1 ? " └─ " : " ├─ ")
+                        + parname + " -> " + Form("(%.5e*%s)",integral,parname.c_str());
+                    BCLog::OutDebug(msg);
                 }
                 // update TFormula
                 _tformula = TFormula(el.key().c_str(), _expr_.c_str());
