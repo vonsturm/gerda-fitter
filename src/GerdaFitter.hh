@@ -101,6 +101,7 @@ class GerdaFitter : public BCModel {
 
     std::map<std::string,TFormula> obs_tformulas;
 
+    TF1 ParseTFormula(std::string prefix, std::string expr, double rangelow, double rangeup);
     std::string SafeROOTName(const std::string original);
     void DumpData();
     TH1* GetFitComponent(std::string filename, std::string objectname, TH1* data, int rebin_x = 1, int rebin_y = 1);

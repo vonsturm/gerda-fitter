@@ -42,7 +42,8 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
      * create fit parameters
      */
 
-    for (auto& el : config["fit"]["parameters"].items()) {
+    // for (auto& el : config["fit"]["parameters"].items()) {
+    for (json::iterator el = config["fit"]["parameters"].begin(); el != config["fit"]["parameters"].end(); ++el) {
         // do we already have a parameter with the same name?
         bool already_exists = false;
         for (unsigned int idx = 0; idx < this->GetNParameters(); ++idx) {
@@ -119,58 +120,23 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
             }
             // is a tformula
             else if (prior_cfg.contains("TFormula")) {
-                TF1* _tformula = nullptr;
                 expr = prior_cfg["TFormula"].get<std::string>();
-                // if there's a list of parameters after
-                if (expr.find(':') != std::string::npos) {
-                    auto formula = expr.substr(0, expr.find_first_of(':'));
-                    auto parlist = expr.substr(expr.find_first_of(':')+1, std::string::npos);
-                    std::vector<double> parlist_vec;
-                    _tformula = new TF1(
-                        (el.key() + "prior_f").c_str(), formula.c_str(),
-                        el.value()["range"][0].get<double>(),
-                        el.value()["range"][1].get<double>()
-                    );
-
-                    if (!_tformula->IsValid()) throw std::runtime_error("invalid prior TFormula given");
-
-                    // eventually set parameters, if any
-                    while (!parlist.empty()) {
-                        auto val = std::stod(parlist.substr(0, parlist.find_first_of(',')));
-                        parlist_vec.push_back(val);
-
-                        if (parlist.find(',') == std::string::npos) parlist = "";
-                        else parlist.erase(0, parlist.find_first_of(',')+1);
-                    }
-                    if ((int)parlist_vec.size() != _tformula->GetNpar()) {
-                        throw std::runtime_error("number of values specified in '"
-                                + el.key() + "' prior TFormula does not match number of TFormula parameters");
-                    }
-
-                    for (size_t j = 0; j < parlist_vec.size(); ++j) _tformula->SetParameter(j, parlist_vec[j]);
-                }
-                // it's just the tformula
-                else {
-                    _tformula = new TF1(
-                        "f1_prior", expr.c_str(),
-                        el.value()["range"][0].get<double>(),
-                        el.value()["range"][1].get<double>()
-                    );
-                    if (_tformula->GetNpar() > 0) {
-                        throw std::runtime_error("TFormula specified for parameter '"
-                                + el.key() + "' is parametric but no parameters were specified");
-                    }
-                }
+                TF1 _tformula = this->ParseTFormula(
+                    el.key(),
+                    expr,
+                    el.value()["range"][0].get<double>(),
+                    el.value()["range"][1].get<double>()
+                );
                 BCLog::OutDebug("found TFormula prior '" + expr + "' for parameter '" + el.key() + "'");
 
                 // I did not manage to use BCTF1Prior from BAT, it segfaults for misterious reasons
                 // so I just make a temporary histogram out of the TFormula
-                prior_hist = new TH1D((el.key() + "prior_h").c_str(), "h1_prior", 1000,
+                prior_hist = new TH1D((el.key() + "_prior_h").c_str(), "h1_prior", 1000,
                     el.value()["range"][0].get<double>(),
                     el.value()["range"][1].get<double>()
                 );
                 for (int j = 1; j <= prior_hist->GetNbinsX(); j++) {
-                    prior_hist->SetBinContent(j, _tformula->Eval(prior_hist->GetBinCenter(j)));
+                    prior_hist->SetBinContent(j, _tformula.Eval(prior_hist->GetBinCenter(j)));
                 }
                 prior_hist->SetDirectory(nullptr);
                 BCLog::OutDebug("produced temporary prior 1000-bin histogram for parameter '" + el.key() + "'");
@@ -367,22 +333,27 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                     );
 
                     // it's a user defined file
-                    if (it.contains("root-file")) {
+                    if (!iso.value().contains("TFormula") and it.contains("root-file")) {
+                        BCLog::OutDebug("user-specified ROOT file detected");
                         auto obj_name = iso.value().value("hist-name", elh.key());
                         auto thh = this->GetFitComponent(it["root-file"].get<std::string>(), obj_name, _current_ds.data, rebin_x, rebin_y);
                         _current_ds.comp.insert({comp_idx, thh});
-
                     }
+                    // it's a explicit TFormula
                     else if (iso.value().contains("TFormula")) {
+                        BCLog::OutDebug("TFormula expression detected");
                         if (!iso.value()["TFormula"].is_string()) {
                             throw std::runtime_error("The \"TFormula\" key must be a string");
                         }
-                        TF1 _tfunc(
-                            "func", iso.value()["TFormula"].get<std::string>().c_str(),
+                        auto _tfunc = this->ParseTFormula(
+                            iso.key(),
+                            iso.value()["TFormula"].get<std::string>(),
                             _current_ds.data->GetXaxis()->GetXmin(),
                             _current_ds.data->GetXaxis()->GetXmax()
                         );
-                        if (_tfunc.GetNpar() > 0) throw std::runtime_error("TFormula parameters are not supported yet");
+                        if (_tfunc.GetNdim() != _current_ds.data->GetDimension()) {
+                            throw std::runtime_error("the specified PDF TFormula has a different dimensionality than the data");
+                        }
                         auto thh = new TH1D(
                             iso.key().c_str(), iso.key().c_str(),
                             _current_ds.data->GetNbinsX(),
@@ -397,6 +368,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                         _current_ds.comp.insert({comp_idx, thh});
                     }
                     else { // look into gerda-pdfs database
+                        BCLog::OutDebug("should be a gerda-pdfs PDF");
                         if (iso.value()["isotope"].is_string()) {
                             auto comp = sum_parts(iso.value()["isotope"]);
                             comp->SetName(this->SafeROOTName(iso.key() + "_" + std::string(comp->GetName())).c_str());
@@ -1092,4 +1064,48 @@ std::string GerdaFitter::SafeROOTName(const std::string orig) {
     }
 
     return std::string(torig.Data());
+}
+
+TF1 GerdaFitter::ParseTFormula(std::string prefix, std::string expr, double rangelow, double rangeup) {
+    // if there's a list of parameters after
+    if (expr.find(':') != std::string::npos) {
+        auto formula = expr.substr(0, expr.find_first_of(':'));
+        auto parlist = expr.substr(expr.find_first_of(':')+1, std::string::npos);
+        std::vector<double> parlist_vec;
+        TF1 _tformula(
+            (prefix + "_prior_tf").c_str(), formula.c_str(),
+            rangelow, rangeup
+        );
+
+        if (!_tformula.IsValid()) throw std::runtime_error("invalid prior TFormula given");
+
+        // eventually set parameters, if any
+        while (!parlist.empty()) {
+            auto val = std::stod(parlist.substr(0, parlist.find_first_of(',')));
+            parlist_vec.push_back(val);
+
+            if (parlist.find(',') == std::string::npos) parlist = "";
+            else parlist.erase(0, parlist.find_first_of(',')+1);
+        }
+        if ((int)parlist_vec.size() != _tformula.GetNpar()) {
+            throw std::runtime_error("number of values specified in '"
+                    + prefix + "' TFormula does not match number of TFormula parameters");
+        }
+
+        for (size_t j = 0; j < parlist_vec.size(); ++j) _tformula.SetParameter(j, parlist_vec[j]);
+
+        return _tformula;
+    }
+    // it's just the tformula
+    else {
+        TF1 _tformula(
+            (prefix + "_prior_tf").c_str(), expr.c_str(),
+            rangelow, rangeup
+        );
+        if (_tformula.GetNpar() > 0) {
+            throw std::runtime_error("TFormula specified with prefix '"
+                    + prefix + "' is parametric but no parameters were specified");
+        }
+        return _tformula;
+    }
 }
