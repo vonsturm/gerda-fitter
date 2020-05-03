@@ -556,9 +556,9 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                 }
                 // for each parameter in formula now calculate integral and substitute
                 // all parameters are already checked and exist
-                BCLog::OutDebug("In observable TFormula scaling parameters : ");
+                BCLog::OutDetail("In observable TFormula scaling parameters : ");
                 std::string _expr_ = _tformula.GetExpFormula().Data();
-                BCLog::OutDebug(" ┌ original formula : " + _expr_);
+                BCLog::OutDetail(" ┌ original formula : " + _expr_);
                 for (int p = 0; p < _tformula.GetNpar(); ++p) {
                     std::string parname = std::string("[") + _tformula.GetParName(p) + "]";
                     int idx = std::stoi(_tformula.GetParName(p));
@@ -568,7 +568,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                     _expr_.replace(_pos,_len,Form("(%.5e*%s)",integral,parname.c_str()));
                     auto msg = (p == _tformula.GetNpar()-1 ? " └─ " : " ├─ ")
                         + parname + " -> " + Form("(%.5e*%s)",integral,parname.c_str());
-                    BCLog::OutDebug(msg);
+                    BCLog::OutDetail(msg);
                 }
                 // update TFormula
                 _tformula = TFormula(el.key().c_str(), _expr_.c_str());
@@ -1227,7 +1227,13 @@ double GerdaFitter::IntegrateHistogram(TH1* h, std::vector<std::pair<double,doub
 double GerdaFitter::IntegrateHistogram1D(TH1* h, std::vector<std::pair<double,double>> range) {
     double integral = 0.;
     for (auto _r : range) {
-        integral += h->Integral(h->FindBin(_r.first), h->FindBin(_r.second));
+        int _b_min = h->FindBin(_r.first);
+        int _b_max = h->FindBin(_r.second);
+        BCLog::OutDebug(" -> IntegrateHistogram1D ["
+            + std::to_string(_b_min) + "," + std::to_string(_b_max)
+            + "] n-bins : " + std::to_string(_b_max-_b_min+1)
+        );
+        integral += h->Integral(_b_min, _b_max);
     } 
     return integral;
 }
