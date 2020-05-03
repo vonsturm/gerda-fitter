@@ -1,10 +1,24 @@
 {
-    "id" : "basic-1d",
+    "id" : "basic-1d-observables",
     "logging" : "summary",
     "precision" : "kMedium",
     "output-dir" : "results",
     "global-mode-search" : {
         "method" : "kOptMinuit"
+    },
+    "observables" : {
+        "total-counts" : {
+            "TFormula" : "[signal-1]+[signal-2]+[bkg-1]",
+            "range" : [0, 30],
+            "long-name" : "Total counts",
+            "units" : "cts"
+        },
+        "fancy-physics" : {
+            "TFormula" : "32*[signal-1]+[bkg-1]/sqrt([signal-2])",
+            "range" : [140, 500],
+            "long-name" : "Some fancy observable",
+            "units" : "things"
+        }
     },
     "fit" : {
         "parameters" : {
