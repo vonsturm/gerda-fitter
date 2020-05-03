@@ -94,6 +94,24 @@ class GerdaFitter : public BCModel {
     void WriteResultsTree(std::string filename);
     double GetFastPValue(const std::vector<double>& parameters, long niter);
 
+    template<typename BasicJsonType>
+    std::vector<std::pair<double,double>> CheckAndStoreRanges(BasicJsonType& range);
+    // TODO : implement me
+    std::vector<std::pair<int,int>> TranslateAxisRangeToBinRange(TH1* h,
+        std::vector<std::pair<double,double>> x_range,
+        std::vector<std::pair<double,double>> y_range = std::vector<std::pair<double,double>>());
+    // wrapper - ranges in axis-unit
+    double IntegrateHistogram(TH1* h,
+        std::vector<std::pair<double,double>> x_range,
+        std::vector<std::pair<double,double>> y_range = std::vector<std::pair<double,double>>());
+    double IntegrateHistogram1D(TH1* h, std::vector<std::pair<double,double>> range);
+    // TODO : implement me
+    double IntegrateHistogram2D(TH2* h,
+        std::vector<std::pair<double,double>> x_range,
+        std::vector<std::pair<double,double>> y_range);
+    // TODO : implement me : IntegrateHistogram with range in bins
+    double IntegrateHistogramBinRange(TH1* h, std::vector<std::pair<int,int>> range);
+
     std::vector<dataset> data;
     json config;
 
