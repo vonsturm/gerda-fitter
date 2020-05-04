@@ -108,7 +108,7 @@ and then associated to PDFs in the `"theoretical-expectations"` section:
 ```js
 "theoretical-expectations" : { // takes a list of files with data histograms
     "../data/gerda-data-bkgmodel-phaseII-v04.00-lar.root" : {  // takes a list of object names in the file
-        "M1_enrBEGe" : {
+        "M1_enrBEGe" : {  // this is a 1D histogram
             "gerda-pdfs" : "../data/gerda-pdfs/v2.1",  // set here the path to the gerda-pdfs, if you want
             "fit-range" : [[560, 2014], [2064, 5300]],  // note the possibility to skip regions
             "rebin-factor" : 5,
@@ -117,6 +117,15 @@ and then associated to PDFs in the `"theoretical-expectations"` section:
             ]
         },
         "M1_enrCoax" : { /* ... */ },
+        "M2_enrGe" : {  // this is a 2D histogram
+            "fit-range-x" : [[560, 2014], [2064, 5300]],
+            "fit-range-y" : [700, 5300],
+            "rebin-factor-x" : 5,  // or just "rebin-factor" to rebin both axes
+            "rebin-factor-y" : 2,
+            "components" : [  // here you must specify a list of PDFs you want to use
+                { /* ... */ }, { /* ... */ }, // ...
+            ]
+        },
         // ...
     },
     "../data/gerda-data-bkgmodel-phaseII-v04.00-raw.root" : { /* ... */ }
