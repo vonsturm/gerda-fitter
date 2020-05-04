@@ -10,7 +10,7 @@ histograms. Taylored on GERDA data and Probability Density Functions.
 ### Compile and install
 
 Requirements
- - [ROOT](https://github.com/root-project/root) ≥ v6.00.00
+ - [ROOT](https://github.com/root-project/root) ≥ v6.12/04
  - [BAT](https://github.com/bat/bat) ≥ v1.0.0 (with Cuba enabled)
 
 Then just `PREFIX=/path/to/prefix make install`.
@@ -167,7 +167,6 @@ or even provide manually a ROOT histogram:
     "components" : {
         "alpha-offset" : {
             "hist-name" : "flat",
-            "prior" : { "histogram" : "priorfile.root:objname" }
         },
         // ...
     }
