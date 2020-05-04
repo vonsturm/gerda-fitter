@@ -524,12 +524,12 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
 
             // if requested substitute all parameters with :
             // <integral-range> X <parameter> in formula
-            if (el.value().contains("scale-with-pdf-integral")) {
+            if (el.value().contains("multiply-fit-parameter-by-pdf-integral")) {
                 BCLog::OutDebug("asked to scale observable '" + el.key() + "' with PDF integral");
                 // get range
                 std::vector<std::pair<double,double>> _scale_range;
-                if (el.value()["scale-with-pdf-integral"].contains("range"))
-                    _scale_range = CheckAndStoreRanges(el.value()["scale-with-pdf-integral"]["range"]);
+                if (el.value()["multiply-fit-parameter-by-pdf-integral"].contains("range"))
+                    _scale_range = CheckAndStoreRanges(el.value()["multiply-fit-parameter-by-pdf-integral"]["range"]);
                 else {
                     throw std::runtime_error(
                         "Need range to scale " + el.key() + " with pdf integral."
@@ -537,9 +537,9 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                 }
                 // find dataset 
                 long unsigned int _ds_number = 0;
-                if (el.value()["scale-with-pdf-integral"].contains("dataset")) {
+                if (el.value()["multiply-fit-parameter-by-pdf-integral"].contains("dataset")) {
                     std::string _dataset = SafeROOTName(
-                        "_" + el.value()["scale-with-pdf-integral"]["dataset"].get<std::string>()
+                        "_" + el.value()["multiply-fit-parameter-by-pdf-integral"]["dataset"].get<std::string>()
                     );
                     for (auto _ds : this->data) {
                         std::string _ds_name = _ds.data->GetName();
@@ -559,7 +559,8 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                         "Integral range for observable " + el.key() + " needs association to dataset."
                     );
                 }
-                // for each parameter in formula now calculate integral and substitute
+                // for each parameter in formula now calculate the integral of the corresponding pdf
+                // and substitute [par] with ([par]*integral).
                 // all parameters are already checked and exist
                 BCLog::OutDetail("In observable TFormula scaling parameters : ");
                 std::string _expr_ = _tformula.GetExpFormula().Data();
@@ -567,7 +568,7 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
                 for (int p = 0; p < _tformula.GetNpar(); ++p) {
                     std::string parname = std::string("[") + _tformula.GetParName(p) + "]";
                     int idx = std::stoi(_tformula.GetParName(p));
-                    double integral = IntegrateHistogram(this->data[_ds_number].comp[idx], _scale_range);
+                    double integral = this->IntegrateHistogram(this->data[_ds_number].comp[idx], _scale_range);
                     auto _pos = _expr_.find(parname);
                     auto _len = parname.size();
                     _expr_.replace(_pos,_len,Form("(%.5e*%s)",integral,parname.c_str()));
@@ -960,8 +961,8 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
             best_range    = orig_range*best;
             bestErr_range = orig_range*bestErr;
             marg_range    = orig_range*(isfixed ? this->GetParameter(c.first).GetFixedValue() : bch_marg.GetLocalMode());
-            qt16_range    = isfixed ? 0 : marg_range - orig_range*bch_marg.GetQuantile(0.16);
-            qt84_range    = isfixed ? 0 : orig_range*bch_marg.GetQuantile(0.84) - marg_range;
+            qt16_range    = isfixed ? 0 : orig_range*bch_marg.GetQuantile(0.16);
+            qt84_range    = isfixed ? 0 : orig_range*bch_marg.GetQuantile(0.84);
             qt90_range    = isfixed ? 0 : orig_range*bch_marg.GetQuantile(0.90);
             orig_bi = 0., best_bi = 0., bestErr_bi = 0.;
             if (!ds.data->InheritsFrom(TH2::Class())) {
@@ -1234,10 +1235,10 @@ double GerdaFitter::IntegrateHistogram(
         throw std::runtime_error("IntegrateHistogram not implemeted for TH3.");
     }
     else if (h->GetDimension() == 2) {
-        return IntegrateHistogram2D(dynamic_cast<TH2*>(h), x_range, y_range);
+        return this->IntegrateHistogram2D(dynamic_cast<TH2*>(h), x_range, y_range);
     }
     else if (h->GetDimension() == 1) {
-        return IntegrateHistogram1D(h, x_range);
+        return this->IntegrateHistogram1D(h, x_range);
     }
     else {
         throw std::runtime_error("Something went wrong in IntegrateHistogram.");

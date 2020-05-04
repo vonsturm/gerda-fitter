@@ -9,12 +9,12 @@
     "observables" : {
         "bkg-in-range" : {
             "TFormula" : "[bkg-1]/20",
-            "scale-with-pdf-integral" : {
-                "range" : [[10,19], [80,89]],
+            "multiply-fit-parameter-by-pdf-integral" : {
+                "range" : [[10, 19], [80, 89]],
                 "dataset" : "h_data"
             },
-            "range" : [0, 0.05],
-            "long-name" : "background in range [[10,20], [80,90]]",
+            "range" : [0, 10],
+            "long-name" : "background in range [10, 20] U [80, 90]",
             "units" : "cts/x-unit"
         }
     },
