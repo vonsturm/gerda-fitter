@@ -1,6 +1,6 @@
 {
     "id" : "basic-1d-observables-scaling",
-    "logging" : "debug",
+    "logging" : "summary",
     "precision" : "kMedium",
     "output-dir" : "results",
     "global-mode-search" : {

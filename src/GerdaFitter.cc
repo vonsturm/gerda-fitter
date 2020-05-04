@@ -496,6 +496,9 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
             // sanity checks
             auto _expr = el.value()["TFormula"].get<std::string>();
             TFormula _tformula(el.key().c_str(), _expr.c_str());
+            // the following check will always fail with ROOT < 6.12/04
+            // The following fixes are essential for this code to work:
+            // https://root.cern.ch/doc/v612/release-notes.html#histogram-libraries
             if (!_tformula.IsValid() or _tformula.GetNpar() < 1 or _tformula.GetNdim() > 0) {
                 throw std::runtime_error("invalid observables TFormula given");
             }
