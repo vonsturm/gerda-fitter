@@ -1,0 +1,40 @@
+{
+    "id" : "basic-2d",
+    "logging" : "summary",
+    "precision" : "kMedium",
+    "output-dir" : "results",
+    "global-mode-search" : {
+        "method" : "kOptMinuit"
+    },
+    "fit" : {
+        "parameters" : {
+            "signal-3" : {
+                "range" : [140, 180],
+                "long-name" : "Signal 3",
+                "units" : "cts"
+            },
+            "bkg-2" : {
+                "range" : [0.08, 0.12],
+                "long-name" : "Background 2",
+                "units" : "cts"
+            }
+        },
+        "theoretical-expectations" : {
+            "data/data.root" : {
+                "h_data_3" : {
+                    "fit-range" : [0, 100],
+                    "rebin-factor" : 1,
+                    "components" : [
+                        {
+                            "root-file" : "data/data.root",
+                            "components" : {
+                                "signal-3" : { "hist-name" : "h_f6" },
+                                "bkg-2" :    { "hist-name" : "h_f7" }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
