@@ -165,61 +165,6 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
     }
 
     /*
-     * define observables
-     */
-
-    if (config.contains("observables")) {
-        for (auto& el : config["observables"].items()) {
-            // sanity checks
-            auto _expr = el.value()["TFormula"].get<std::string>();
-            TFormula _tformula(el.key().c_str(), _expr.c_str());
-            // the following check will always fail with ROOT < 6.12/04
-            // The following fixes are essential for this code to work:
-            // https://root.cern.ch/doc/v612/release-notes.html#histogram-libraries
-            if (!_tformula.IsValid() or _tformula.GetNpar() < 1 or _tformula.GetNdim() > 0) {
-                throw std::runtime_error("invalid observables TFormula given");
-            }
-            // loop over number of parameters in formula
-            for (int p = 0; p < _tformula.GetNpar(); ++p) {
-                std::string parname = _tformula.GetParName(p);
-                bool exists = false;
-                // look for BAT internal parameter index
-                for (unsigned int idx = 0; idx < this->GetNParameters(); ++idx) {
-                    if (this->GetParameters().At(idx).GetName() == parname) {
-                        exists = true;
-                        // we do this here because we'd rather save BAT's internal parameter index
-                        // to access it later in GerdaFitter::CalculateObservables
-                        _tformula.SetParName(p, std::to_string(idx).c_str());
-                        break;
-                    }
-                }
-                // throw exception if parameter is undefined
-                if (!exists) throw std::runtime_error(
-                    "fit parameter '" + parname + "' not found, is it defined in \"parameters\"?"
-                );
-            }
-
-            BCLog::OutDetail("adding observable '" + el.key() + "' (\""
-                + el.value().value("long-name", "") + "\" [" + el.value().value("units", "")
-                + "]) with TFormula = \"" + _expr + "\" in range = ["
-                + std::to_string(el.value()["range"][0].get<double>()) + ","
-                + std::to_string(el.value()["range"][1].get<double>()) + "]");
-
-            // register observable in BAT
-            this->AddObservable(
-                el.key(),
-                el.value()["range"][0].get<double>(),
-                el.value()["range"][1].get<double>(),
-                el.value().value("long-name", ""),
-                "(" + el.value().value("units", "") + ")"
-            );
-
-            // save TFormula for later use in GerdaFitter::CalculateObservables
-            obs_tformulas.emplace(el.key(), _tformula);
-        }
-    }
-
-    /*
      * read in histograms
      */
 
@@ -540,6 +485,127 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
             this->DumpData();
         }
     }
+
+    /*
+     * define observables
+     */
+
+    if (config.contains("observables")) {
+        BCLog::OutDebug("Parsing 'observables' section");
+        for (auto& el : config["observables"].items()) {
+            // sanity checks
+            auto _expr = el.value()["TFormula"].get<std::string>();
+            TFormula _tformula(el.key().c_str(), _expr.c_str());
+            // the following check will always fail with ROOT < 6.12/04
+            // The following fixes are essential for this code to work:
+            // https://root.cern.ch/doc/v612/release-notes.html#histogram-libraries
+            if (!_tformula.IsValid() or _tformula.GetNpar() < 1 or _tformula.GetNdim() > 0) {
+                throw std::runtime_error("invalid observables TFormula given");
+            }
+            // loop over number of parameters in formula
+            for (int p = 0; p < _tformula.GetNpar(); ++p) {
+                std::string parname = _tformula.GetParName(p);
+                bool exists = false;
+                // look for BAT internal parameter index
+                for (unsigned int idx = 0; idx < this->GetNParameters(); ++idx) {
+                    if (this->GetParameters().At(idx).GetName() == parname) {
+                        exists = true;
+                        // we do this here because we'd rather save BAT's internal parameter index
+                        // to access it later in GerdaFitter::CalculateObservables
+                        _tformula.SetParName(p, std::to_string(idx).c_str());
+                        break;
+                    }
+                }
+                // throw exception if parameter is undefined
+                if (!exists) throw std::runtime_error(
+                    "fit parameter '" + parname + "' not found, is it defined in \"parameters\"?"
+                );
+            }
+
+            // if requested substitute all parameters with :
+            // <integral-range> X <parameter> in formula
+            if (el.value().contains("multiply-fit-parameter-by-pdf-integral")) {
+                BCLog::OutDebug("asked to scale observable '" + el.key() + "' with PDF integral");
+                // get range
+                std::vector<std::pair<double,double>> _scale_range;
+                if (el.value()["multiply-fit-parameter-by-pdf-integral"].contains("range"))
+                    _scale_range = CheckAndStoreRanges(el.value()["multiply-fit-parameter-by-pdf-integral"]["range"]);
+                else {
+                    throw std::runtime_error(
+                        "Need range to scale " + el.key() + " with pdf integral."
+                    );
+                }
+                // find dataset 
+                long unsigned int _ds_number = 0;
+                if (el.value()["multiply-fit-parameter-by-pdf-integral"].contains("dataset")) {
+                    std::string _dataset = SafeROOTName(
+                        "_" + el.value()["multiply-fit-parameter-by-pdf-integral"]["dataset"].get<std::string>()
+                    );
+                    for (auto _ds : this->data) {
+                        std::string _ds_name = _ds.data->GetName();
+                        if (_ds_name.find(_dataset) != std::string::npos) {
+                            break;
+                        }
+                        _ds_number++;
+                    }
+                    if (_ds_number >= this->data.size()) {
+                        throw std::runtime_error(
+                            "Corresponding dataset " + _dataset + " not found."
+                        );
+                    }
+                }
+                else {
+                    throw std::runtime_error(
+                        "Integral range for observable " + el.key() + " needs association to dataset."
+                    );
+                }
+                // for each parameter in formula now calculate the integral of the corresponding pdf
+                // and substitute [par] with ([par]*integral).
+                // all parameters are already checked and exist
+                BCLog::OutDetail("In observable TFormula scaling parameters : ");
+                std::string _expr_ = _tformula.GetExpFormula().Data();
+                BCLog::OutDetail(" ┌ original formula : " + _expr_);
+                for (int p = 0; p < _tformula.GetNpar(); ++p) {
+                    std::string parname = std::string("[") + _tformula.GetParName(p) + "]";
+                    int idx = std::stoi(_tformula.GetParName(p));
+                    double integral = this->IntegrateHistogram(this->data[_ds_number].comp[idx], _scale_range);
+                    auto _pos = _expr_.find(parname);
+                    auto _len = parname.size();
+                    _expr_.replace(_pos,_len,Form("(%.5e*%s)",integral,parname.c_str()));
+                    auto msg = (p == _tformula.GetNpar()-1 ? " └─ " : " ├─ ")
+                        + parname + " -> " + Form("(%.5e*%s)",integral,parname.c_str());
+                    BCLog::OutDetail(msg);
+                }
+                // update TFormula
+                _tformula = TFormula(el.key().c_str(), _expr_.c_str());
+                // need to reset parameter names because ROOT is stupid
+                for (int p = 0; p < _tformula.GetNpar(); ++p) {
+                    std::string parname = _tformula.GetParName(p);
+                    // delete the p in front of the parameter name
+                    parname.erase(0,1); 
+                    _tformula.SetParName(p, parname.c_str());
+                }
+            }
+
+            BCLog::OutDetail("adding observable '" + el.key() + "' (\""
+                + el.value().value("long-name", "") + "\" [" + el.value().value("units", "")
+                + "]) with TFormula = \"" + _tformula.GetExpFormula().Data() + "\" in range = ["
+                + std::to_string(el.value()["range"][0].get<double>()) + ","
+                + std::to_string(el.value()["range"][1].get<double>()) + "]");
+
+            // register observable in BAT
+            this->AddObservable(
+                el.key(),
+                el.value()["range"][0].get<double>(),
+                el.value()["range"][1].get<double>(),
+                el.value().value("long-name", ""),
+                "(" + el.value().value("units", "") + ")"
+            );
+
+            // save TFormula for later use in GerdaFitter::CalculateObservables
+            obs_tformulas.emplace(el.key(), _tformula);
+        }
+    }
 }
 
 GerdaFitter::~GerdaFitter() {
@@ -814,13 +880,13 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
     BCLog::OutSummary("Writing Parameters to output Tree in " + filename);
     TFile tf(filename.c_str(), "recreate");
     // define parameters
-    auto par_name = new std::string;
+    std::string par_name;
     double marg_mode;
     double marg_qt16, marg_qt84, marg_qt90;
     double glob_mode, glob_mode_error;
     // build results tree
     TTree tt("fit_par_results", "Results of the fitting procedure");
-    tt.Branch("par_name",          par_name);
+    tt.Branch("par_name",          &par_name);
     tt.Branch("marg_mode",         &marg_mode,       "marg_mode/D");
     tt.Branch("marg_quantile_16",  &marg_qt16,       "marg_quantile_16/D");
     tt.Branch("marg_quantile_84",  &marg_qt84,       "marg_quantile_84/D");
@@ -831,7 +897,7 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
     for (unsigned int p = 0; p < this->GetNParameters(); p++) {
         BCLog::OutDebug("Writing Parameter " + this->GetVariable(p).GetName() + " to tree");
         bool isfixed = this->GetParameter(p).Fixed();
-        *par_name = std::string(this->GetVariable(p).GetName().data());
+        par_name = std::string(this->GetVariable(p).GetName().data());
         if (!isfixed) {
             auto bch_marg = this->GetMarginalized(p);
             marg_mode = bch_marg.GetLocalMode();
@@ -855,7 +921,7 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
 
     // calculate integral of raw histogram in fit range
     for (auto ds : data) {
-        std::string * comp_name = new std::string;
+        std::string comp_name;
         double orig_range, orig_bi;
         double best_range, best_bi;
         double bestErr_range, bestErr_bi;
@@ -865,7 +931,7 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
         double qt90_range, qt90_bi;
 
         TTree ttds(Form("counts_%s", ds.data->GetName()), "counts in selected regions for each parameter");
-        ttds.Branch("comp_name",               comp_name);
+        ttds.Branch("comp_name",               &comp_name);
         ttds.Branch("fit_range_orig",          &orig_range,    "fit_range_orig/D");
         ttds.Branch("fit_range_glob_mode",     &best_range,    "fit_range_glob_mode/D");
         ttds.Branch("fit_range_glob_mode_err", &bestErr_range, "fit_range_glob_mode_err/D");
@@ -882,7 +948,7 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
         ttds.Branch("bi_range_qt90",           &qt90_bi,       "bi_range_qt90/D");
 
         for (auto c : ds.comp) {
-            *comp_name = std::string(this->GetVariable(c.first).GetName().data());
+            comp_name = std::string(this->GetVariable(c.first).GetName().data());
             auto & ch = c.second;
             bool isfixed   = this->GetParameter(c.first).Fixed();
             double best    = isfixed ? this->GetParameter(c.first).GetFixedValue() : this->GetBestFitParameters()[c.first];
@@ -895,8 +961,8 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
             best_range    = orig_range*best;
             bestErr_range = orig_range*bestErr;
             marg_range    = orig_range*(isfixed ? this->GetParameter(c.first).GetFixedValue() : bch_marg.GetLocalMode());
-            qt16_range    = isfixed ? 0 : marg_range - orig_range*bch_marg.GetQuantile(0.16);
-            qt84_range    = isfixed ? 0 : orig_range*bch_marg.GetQuantile(0.84) - marg_range;
+            qt16_range    = isfixed ? 0 : orig_range*bch_marg.GetQuantile(0.16);
+            qt84_range    = isfixed ? 0 : orig_range*bch_marg.GetQuantile(0.84);
             qt90_range    = isfixed ? 0 : orig_range*bch_marg.GetQuantile(0.90);
             orig_bi = 0., best_bi = 0., bestErr_bi = 0.;
             if (!ds.data->InheritsFrom(TH2::Class())) {
@@ -916,8 +982,8 @@ void GerdaFitter::WriteResultsTree(std::string filename) {
                 best_bi    = orig_bi*best;
                 bestErr_bi = orig_bi*bestErr;
                 marg_bi    = orig_bi*(isfixed ? this->GetParameter(c.first).GetFixedValue() : bch_marg.GetLocalMode());
-                qt16_bi    = isfixed ? 0 : marg_bi - orig_bi*bch_marg.GetQuantile(0.16);
-                qt84_bi    = isfixed ? 0 : orig_bi*bch_marg.GetQuantile(0.84) - marg_bi;
+                qt16_bi    = isfixed ? 0 : orig_bi*bch_marg.GetQuantile(0.16);
+                qt84_bi    = isfixed ? 0 : orig_bi*bch_marg.GetQuantile(0.84);
                 qt90_bi    = isfixed ? 0 : orig_bi*bch_marg.GetQuantile(0.90);
             }
             ttds.Fill();
@@ -1123,4 +1189,83 @@ TF1 GerdaFitter::ParseTFormula(std::string prefix, std::string expr, double rang
         }
         return _tformula;
     }
+}
+
+template<typename BasicJsonType>
+std::vector<std::pair<double,double>> GerdaFitter::CheckAndStoreRanges(BasicJsonType& range) {
+    bool _bad_range = false;
+    std::vector<std::pair<double,double>> _v_range;
+    if (range.is_array()) {
+        if (range[0].is_array()) {
+            for (auto _r : range) {
+                if (_r[0].is_number() and _r[1].is_number()) {
+                    _v_range.push_back({_r[0],_r[1]});
+                }
+                else _bad_range = true;
+            }
+        }
+        else if (range[0].is_number() and range[1].is_number()) {
+            _v_range.push_back({range[0],range[1]});
+        }
+        else _bad_range = true;
+    }
+    else _bad_range = true;
+
+    if (_bad_range) throw std::runtime_error("Range is ill-defined");
+
+    return _v_range;
+}
+
+std::vector<std::pair<int,int>> GerdaFitter::TranslateAxisRangeToBinRange(
+    TH1* /*h*/,
+    std::vector<std::pair<double,double>> /*x_range*/,
+    std::vector<std::pair<double,double>> /*y_range*/
+) {
+    BCLog::OutSummary("Implement me : TranslateAxisRangeToBinRange");
+    std::vector<std::pair<int,int>> _b_range;
+    return _b_range;
+}
+
+double GerdaFitter::IntegrateHistogram(
+    TH1* h,
+    std::vector<std::pair<double,double>> x_range,
+    std::vector<std::pair<double,double>> y_range
+) {
+    if (h->GetDimension() > 2) {
+        throw std::runtime_error("IntegrateHistogram not implemeted for TH3.");
+    }
+    else if (h->GetDimension() == 2) {
+        return this->IntegrateHistogram2D(dynamic_cast<TH2*>(h), x_range, y_range);
+    }
+    else if (h->GetDimension() == 1) {
+        return this->IntegrateHistogram1D(h, x_range);
+    }
+    else {
+        throw std::runtime_error("Something went wrong in IntegrateHistogram.");
+    }
+    return 0.;
+}
+
+double GerdaFitter::IntegrateHistogram1D(TH1* h, std::vector<std::pair<double,double>> range) {
+    double integral = 0.;
+    for (auto _r : range) {
+        int _b_min = h->FindBin(_r.first);
+        int _b_max = h->FindBin(_r.second);
+        BCLog::OutDebug(" -> IntegrateHistogram1D ["
+            + std::to_string(_b_min) + "," + std::to_string(_b_max)
+            + "] n-bins : " + std::to_string(_b_max-_b_min+1)
+        );
+        integral += h->Integral(_b_min, _b_max);
+    } 
+    return integral;
+}
+
+double GerdaFitter::IntegrateHistogram2D(
+    TH2* /*h*/,
+    std::vector<std::pair<double,double>> /*x_range*/,
+    std::vector<std::pair<double,double>> /*y_range*/
+)
+{ 
+    BCLog::OutSummary("Implement me : IntegrateHistogram::TH2");
+    return 0;
 }

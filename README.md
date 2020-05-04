@@ -188,7 +188,13 @@ defined via JSON file with the following syntax:
 ```js
 "parameters" : {
     "2nbb-half-life-bege" : {  // unique internal name
-        "TFormula": "1.13380E26/[2nbb-bege]", // ROOT's TFormula
+        "TFormula": "1.13380E26/[2nbb-bege]",  // ROOT's TFormula
+        "multiply-fit-parameter-by-pdf-integral" : {  // there's the possibility to multiply each parameter
+                                                      // above by the pdf integral in a range:
+                                                      // [2nbb-bege] -> ([2nbb-bege]*Int)
+            "range" : [[10,19], [80,89]],  // range for the integral
+            "dataset" : "h_data"  // dataset pdf refers to
+        },
         "range" : [2E-5, 1E-4],
         "long-name" : "T_{1/2}^{2#nu} - BEGe",
         "units" : "cts",
