@@ -1,6 +1,8 @@
 //usr/bin/env root -l ${0}\(\""${0}"\",\""${*}"\"\); exit $?
 
 #include "poisson_bands.hpp"
+using namespace poiband;
+
 #include "getopt.h"
 
 void usage() {
