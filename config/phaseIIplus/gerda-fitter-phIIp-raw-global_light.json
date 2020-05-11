@@ -7,7 +7,7 @@
         "method" : "kOptMinuit"
     },
     "p-value": {
-        "enabled" : false,
+        "enabled" : true,
         "iterations" : 1E7
     },
     "observables": {
@@ -83,9 +83,19 @@
                 "long-name" : "^{40}K - close",
                 "units" : "cts"
             },
+            "K40-far" : {
+                "range" : [1E5, 2E6],
+                "long-name" : "^{40}K - far",
+                "units" : "cts"
+            },
             "K42-lar" : {
-                "range" : [6E7, 8E7],
+                "range" : [6E6, 8E7],
                 "long-name" : "^{42}K - hom. in LAr",
+                "units" : "cts"
+            },
+            "K42-above-array" : {
+                "range" : [0, 1E8],
+                "long-name" : "^{42}K - hom. in LAr above the array",
                 "units" : "cts"
             },
             "Zn65-invcoax" : {
@@ -97,13 +107,43 @@
                 "range" : [0, 2E4],
                 "long-name" : "^{42}K on n+ - InvCoax",
                 "units" : "cts"
+            },
+            "K42-nplus-bege" : {
+                "range" : [0, 1E4],
+                "long-name" : "^{42}K - n^+ (BEGe)",
+                "units" : "cts"
+            },
+            "K42-nplus-semicoax" : {
+                "range" : [0, 1E5],
+                "long-name" : "^{42}K - n^+ (Coax)",
+                "units" : "cts"
+            },
+            "alpha-slope-bege" : {
+                "range" : [0, 5E-4],
+                "long-name" : "#alpha-model BEGe - slope",
+                "units" : "cts"
+            },
+            "alpha-offset-bege" : {
+                "range" : [0, 1],
+                "long-name" : "#alpha-model BEGe - offset",
+                "units" : "cts"
+            },
+            "alpha-slope-coax" : {
+                "range" : [0, 1E-4],
+                "long-name" : "#alpha-model SemiCoax - slope",
+                "units" : "cts"
+            },
+            "alpha-offset-coax" : {
+                "range" : [0, 1],
+                "long-name" : "#alpha-model SemiCoax - offset",
+                "units" : "cts"
             }
         },
         "theoretical-expectations" : {
-            "../../data/gerda-data-bkgmodel-phaseIIplus-v06.12.root" : {
+            "../../data/gerda-data-bkgmodel-phaseIIplus-v06.13.root" : {
                 "raw/M1_invCoax" : {
                     "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
-                    "fit-range" : [[565, 2014], [2064, 2700]],
+                    "fit-range" : [[565, 2014], [2064, 3500]],
                     "rebin-factor" : 5,
                     "components" : [
                         {
@@ -145,10 +185,26 @@
                             }
                         },
                         {
+                            "part": "larveto/outer_fibers",
+                            "components" : {
+                                "K40-far" : {
+                                    "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
                             "part": "larveto/inner_fibers",
                             "components" : {
                                 "K40-central-fiber-shroud" : {
                                     "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
+                            "part": "lar/above_array",
+                            "components" : {
+                                "K42-above-array" : {
+                                    "isotope" : "K42"
                                 }
                             }
                         },
@@ -169,6 +225,22 @@
                             }
                         },
                         {
+                            "part": "gedet/nplus_bege",
+                            "components": {
+                                "K42-nplus-bege" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_semicoax",
+                            "components": {
+                                "K42-nplus-semicoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
                             "part": "gedet/nplus_invcoax",
                             "components": {
                                 "K42-nplus-invcoax" : {
@@ -180,7 +252,7 @@
                 },
                 "raw/M1_enrBEGe" : {
                     "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
-                    "fit-range" : [[565, 2014], [2064, 2700]],
+                    "fit-range" : [[565, 2014], [2064, 3500]],
                     "rebin-factor" : 5,
                     "components" : [
                         {
@@ -222,10 +294,26 @@
                             }
                         },
                         {
+                            "part": "larveto/outer_fibers",
+                            "components" : {
+                                "K40-far" : {
+                                    "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
                             "part": "larveto/inner_fibers",
                             "components" : {
                                 "K40-central-fiber-shroud" : {
                                     "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
+                            "part": "lar/above_array",
+                            "components" : {
+                                "K42-above-array" : {
+                                    "isotope" : "K42"
                                 }
                             }
                         },
@@ -236,12 +324,46 @@
                                     "isotope" : "K42"
                                 }
                             }
+                        },
+                        {
+                            "part": "gedet/nplus_bege",
+                            "components": {
+                                "K42-nplus-bege" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_semicoax",
+                            "components": {
+                                "K42-nplus-semicoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_invcoax",
+                            "components": {
+                                "K42-nplus-invcoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "components" : {
+                                "alpha-slope-bege" : {
+                                    "TFormula" : "x*(x>0 && x<5160)"
+                                },
+                                "alpha-offset-bege" : {
+                                    "TFormula" : "1"
+                                }
+                            }
                         }
                     ]
                 },
                 "raw/M1_enrCoax" : {
                     "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
-                    "fit-range" : [[565, 2014], [2064, 2700]],
+                    "fit-range" : [[565, 2014], [2064, 3500]],
                     "rebin-factor" : 5,
                     "components" : [
                         {
@@ -283,10 +405,26 @@
                             }
                         },
                         {
+                            "part": "larveto/outer_fibers",
+                            "components" : {
+                                "K40-far" : {
+                                    "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
                             "part": "larveto/inner_fibers",
                             "components" : {
                                 "K40-central-fiber-shroud" : {
                                     "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
+                            "part": "lar/above_array",
+                            "components" : {
+                                "K42-above-array" : {
+                                    "isotope" : "K42"
                                 }
                             }
                         },
@@ -297,12 +435,46 @@
                                     "isotope" : "K42"
                                 }
                             }
+                        },
+                        {
+                            "part": "gedet/nplus_bege",
+                            "components": {
+                                "K42-nplus-bege" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_semicoax",
+                            "components": {
+                                "K42-nplus-semicoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_invcoax",
+                            "components": {
+                                "K42-nplus-invcoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "components" : {
+                                "alpha-slope-coax" : {
+                                    "TFormula" : "x*(x>0 && x<5160)"
+                                },
+                                "alpha-offset-coax" : {
+                                    "TFormula" : "1"
+                                }
+                            }
                         }
                     ]
                 },
                 "raw/M2_enrE1plusE2" : {
                     "gerda-pdfs" : "../../data/gerda-pdfs/ph2p-v1.0-rc",
-                    "fit-range" : [520, 2500],
+                    "fit-range" : [520, 3000],
                     "rebin-factor" : 10,
                     "components" : [
                         {
@@ -320,9 +492,25 @@
                             }
                         },
                         {
+                            "part": "ge_holders/ge_holders_all",
+                            "components" : {
+                                "Ac228-holders" : {
+                                    "isotope" : "Ac228"
+                                }
+                            }
+                        },
+                        {
                             "part": "minishroud/ms_all",
                             "components" : {
                                 "K40-close" : {
+                                    "isotope" : "K40"
+                                }
+                            }
+                        },
+                        {
+                            "part": "larveto/outer_fibers",
+                            "components" : {
+                                "K40-far" : {
                                     "isotope" : "K40"
                                 }
                             }
@@ -336,9 +524,41 @@
                             }
                         },
                         {
+                            "part": "lar/above_array",
+                            "components" : {
+                                "K42-above-array" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
                             "part": "lar/sur_array",
                             "components" : {
                                 "K42-lar" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_bege",
+                            "components": {
+                                "K42-nplus-bege" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_semicoax",
+                            "components": {
+                                "K42-nplus-semicoax" : {
+                                    "isotope" : "K42"
+                                }
+                            }
+                        },
+                        {
+                            "part": "gedet/nplus_invcoax",
+                            "components": {
+                                "K42-nplus-invcoax" : {
                                     "isotope" : "K42"
                                 }
                             }
