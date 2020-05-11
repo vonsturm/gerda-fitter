@@ -216,12 +216,41 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
             }
             canvas->SetMargin(0.04, 0.01, 0.07, 0.07);
 
+            auto draw_components = [&](){
+                // draw components
+                TIter nextt(d->GetListOfKeys());
+                TKey* keyy;
+                while ((keyy = dynamic_cast<TKey*>(nextt()))) {
+                    auto cll = TClass::GetClass(keyy->GetClassName());
+                    // make sure it's a histogram (whatever dim)
+                    if (cll->InheritsFrom(TH1::Class())) {
+                        auto obj = keyy->ReadObj();
+                        if (std::string(obj->GetName()) == std::string(d->GetName())) continue;
+                        if (is_th2) {
+                            h = dynamic_cast<TH2*>(obj)->Rebin2D(rebin);
+                            h->SetLineColor(kGray+1);
+                            dynamic_cast<TH2*>(h)->Rebin2D(rebin);
+                            h->GetZaxis()->SetRangeUser(0, th2_zmax);
+                            h->Draw("hist same 0 lego");
+                        }
+                        else {
+                            if (was_th2 and collapse_2d) h = collapse(dynamic_cast<TH2*>(obj));
+                            else                         h = dynamic_cast<TH1*>(obj);
+                            h->SetLineColor(kGray+1);
+                            h->Rebin(rebin);
+                            h->Draw("hist same");
+                        }
+                    }
+                }
+            };
+
             // poissonian bands?
             if (bands and !is_th2) {
                 auto resgraph = dynamic_cast<TH1*>(data->Clone());
 
                 if (residuals) resgraph->Divide(model);
                 if (range_low_x and range_upp_x) resgraph->GetXaxis()->SetRangeUser(range_low_x->GetVal(), range_upp_x->GetVal());
+                if (logy) resgraph->GetYaxis()->SetRangeUser(0.2, 2*resgraph->GetMaximum());
                 resgraph->Draw("P0 HIST");
                 gPad->Update();
 
@@ -239,6 +268,15 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
                     if (model->GetBinContent(b) == 0) resgraph->SetBinContent(b, 1);
                 }
                 if (residuals) resgraph->SetYTitle("data/model");
+
+                if (!residuals) {
+                    // draw components
+                    draw_components();
+                    model->SetLineColor(kBlack);
+                    model->SetLineWidth(1);
+                    model->Draw("hist same");
+                }
+
                 resgraph->Draw("P0 SAME HIST");
                 if (logy) gPad->SetLogy();
 
@@ -256,29 +294,8 @@ void plotspectra(std::string prog = "plotspectra", std::string args = "") {
                 if (logy and !is_th2) gPad->SetLogy();
 
                 // draw components
-                TIter nextt(d->GetListOfKeys());
-                TKey* keyy;
-                while ((keyy = dynamic_cast<TKey*>(nextt()))) {
-                    auto cll = TClass::GetClass(keyy->GetClassName());
-                    // make sure it's a histogram (whatever dim)
-                    if (cll->InheritsFrom(TH1::Class())) {
-                        auto obj = keyy->ReadObj();
-                        if (is_th2) {
-                            h = dynamic_cast<TH2*>(obj)->Rebin2D(rebin);
-                            h->SetLineColor(kGray+1);
-                            dynamic_cast<TH2*>(h)->Rebin2D(rebin);
-                            h->GetZaxis()->SetRangeUser(0, th2_zmax);
-                            h->Draw("hist same 0 lego");
-                        }
-                        else {
-                            if (was_th2 and collapse_2d) h = collapse(dynamic_cast<TH2*>(obj));
-                            else                         h = dynamic_cast<TH1*>(obj);
-                            h->SetLineColor(kGray+1);
-                            h->Rebin(rebin);
-                            h->Draw("hist same");
-                        }
-                    }
-                }
+                draw_components();
+
                 // set ranges
                 if (range_low_x and range_upp_x) data->GetXaxis()->SetRangeUser(range_low_x->GetVal(), range_upp_x->GetVal());
                 if (is_th2 and range_low_y and range_upp_y) data->GetYaxis()->SetRangeUser(range_low_y->GetVal(), range_upp_y->GetVal());
