@@ -186,13 +186,14 @@ GerdaFitter::GerdaFitter(json outconfig) : config(outconfig) {
 
             BCLog::OutDebug("getting data histogram '" + elh.key() + "' from " + el.key());
             auto th = dynamic_cast<TH1*>(_tf.Get(elh.key().c_str()));
+            if (!th) throw std::runtime_error("could not find object '" + elh.key() + "' in file " + el.key());
+            th->SetDirectory(nullptr);
+
             // rebin if requested
             th->Rebin(rebin_x);
             if ((rebin_y != 1) and (_tf.Get(elh.key().c_str())->InheritsFrom(TH2::Class()))) {
                 dynamic_cast<TH2*>(_tf.Get(elh.key().c_str()))->RebinY(rebin_y);
             }
-            if (!th) throw std::runtime_error("could not find object '" + elh.key() + "' in file " + el.key());
-            th->SetDirectory(nullptr);
             auto basename = el.key().substr(
                     el.key().find_last_of('/')+1,
                     el.key().find_last_of('.') - el.key().find_last_of('/') - 1);
