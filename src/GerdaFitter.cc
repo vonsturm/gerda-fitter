@@ -1030,12 +1030,13 @@ double GerdaFitter::GetFastPValue(const std::vector<double>& parameters, long ni
             delete hcopy;
         }
         for (auto& r : it.brange) {
-            for (int b = r.first; b < r.second; ++b) {
+            for (int b = r.first; b <= r.second; ++b) {
                 observed.push_back(it.data->GetBinContent(b));
                 expected.push_back(sum->GetBinContent(b));
                 nbins++;
             }
         }
+        delete sum;
     }
 
     TRandom3 rnd(0);
