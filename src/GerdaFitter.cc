@@ -617,7 +617,7 @@ GerdaFitter::~GerdaFitter() {
 }
 
 double GerdaFitter::LogLikelihood(const std::vector<double>& parameters) {
-    double logprob = 0;
+    double logprob = -1.*_likelihood_offset;
     // loop over datasets
     for (auto& it : data) {
         for (auto& r : it.brange) {
@@ -1046,6 +1046,28 @@ double GerdaFitter::GetFastPValue(const std::vector<double>& parameters, long ni
     );
 
     return pvalue;
+}
+
+double GerdaFitter::Integrate(bool enable_offset) {
+    // sanity check
+    if (GetBestFitParameters().size() != GetNParameters() &&
+        GetBestFitParameters().size() != GetNVariables()) {
+        BCLog::OutSummary("No best fit parameters available, needed for integration. Please do the minimization first.");
+        return 0.;
+    }
+    double _likelihood_integral = 0.;
+    if (enable_offset) {
+        // set offset to a reasonable value and integrate, finally reset the offset
+        _likelihood_offset = this->LogLikelihood(this->GetBestFitParameters());
+        _likelihood_integral = log(BCIntegrate::Integrate());
+        BCLog::OutSummary("LogIntegral (LogOffset " + std::to_string(_likelihood_offset) +
+            "): " + std::to_string(_likelihood_integral + _likelihood_offset));
+        _likelihood_offset = 0.;
+    }
+    else {
+      _likelihood_integral = BCIntegrate::Integrate();
+    }
+    return _likelihood_integral;
 }
 
 void GerdaFitter::PrintOptimizationSummary() {
